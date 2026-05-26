@@ -39,6 +39,9 @@ def main():
 
     print("=== Start Main ===")
     
+    xio = MyXIO.XIO("OUTPUT")
+    xio.write_io(0x00)
+
     blink_couter = 0
     
     MyWS2812.do_all_def()	# Alle Leds auf Default-Wert
@@ -122,18 +125,6 @@ def main():
                         if MyDecode.get_value_1() == 16:
                             for i in pix_array_16:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
-                        if MyDecode.get_value_1() == 17:
-                            for i in pix_array_17:
-                                MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
-                        if MyDecode.get_value_1() == 18:
-                            for i in pix_array_18:
-                                MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
-                        if MyDecode.get_value_1() == 19:
-                            for i in pix_array_19:
-                                MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
-                        if MyDecode.get_value_1() == 20:
-                            for i in pix_array_20:
-                                MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         #=======================================================================
 
                 if MyDecode.get_cmd_1() == "test":
@@ -191,6 +182,12 @@ if __name__ == "__main__":
         ### Test ###
         #print("Serial-Con -> Test")
         #MySerial.sercon_write_out("Start Test")
+
+    if MyModule.inc_xio:
+        print("XIO -> Load-Module")
+        import libs.module_xio_2 as MyXIO
+    else:
+        print("XIO -> nicht vorhanden")
 
     main()      # Start Main $$$
 

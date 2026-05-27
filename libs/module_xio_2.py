@@ -5,10 +5,6 @@
 from machine import Pin             # type: ignore
 from utime import sleep             # type: ignore
 
-# Funktionen:
-# 0         -> Keine Funktion 
-# 1 - 63    -> Funktion 1 - 63
-#
 class XIO:
 
     def __init__(self, dir):

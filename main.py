@@ -26,7 +26,7 @@ pix_array_15 = [15]
 pix_array_16 = [16]
 #------------------------------------------------------------------------------
 
-obj_offset = 0          # Offset bei Zählung ab 1 = -1
+obj_offset = -1          # Offset bei Zählung ab 1 = -1
 
 def blink_func():
     MyWS2812.do_blink()

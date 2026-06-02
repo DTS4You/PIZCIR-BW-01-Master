@@ -1,11 +1,28 @@
 # PIZCIR-Bundeswehr-Weltall
-Bundeswehr-Weltall-Modell
+Bundeswehr-Weltall-Modell-Master
 https://github.com/DTS4You/PIZCIR-Bundeswehr-Weltall/blob/main/README.md
 # -----------------------------------------------------------------------------
-Zuordnung:
+Funktionszuordnung:
 
-Code    Funktion
-01      xyz
+Funktion:	    HTML-Code	Stripe:
+# -----------------------------------------------------------------------------
+
+1. SATCOMBw     1		    1, 2, 5, 6, 7, 8
+
+2. Galileo	    2   		2, 3 ,9 , 10
+
+3. SARah	    3   		3, 4, 11, 12, 15
+
+4. TerraSAR-X	4	    	3, 4, 13, 14
+
+5. H2SAT	    5   		1, 2
+
+6. EnMAP	    6   		3, 4
+
+7. SAR-Lupe	    7   		3, 4
+
+# -----------------------------------------------------------------------------
+
 
 # -----------------------------------------------------------------------------
 

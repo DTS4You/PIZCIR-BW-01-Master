@@ -240,23 +240,23 @@ def self_test():                                # Pro Stripe einmal Aus-RGB(25%)
         # Alle Aus
         strips.set_pixel_line(0, strips.num_leds - 1, (0,0,0))
         strips.show()
-        time.sleep(0.3)
+        time.sleep(0.1)
         # Alle Rot
         strips.set_pixel_line(0, strips.num_leds - 1, (50,0,0))
         strips.show()
-        time.sleep(0.3)
+        time.sleep(0.1)
         # Alle Grün
         strips.set_pixel_line(0, strips.num_leds - 1, (0,50,0))
         strips.show()
-        time.sleep(0.3)
+        time.sleep(0.1)
         # Alle Blau
         strips.set_pixel_line(0, strips.num_leds - 1, (0,0,50))
         strips.show()
-        time.sleep(0.3)
+        time.sleep(0.1)
         # Alle Aus
         strips.set_pixel_line(0, strips.num_leds - 1, (0,0,0))
         strips.show()
-        time.sleep(0.3)
+        time.sleep(0.1)
 
 
 def do_blink_test():

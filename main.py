@@ -8,14 +8,15 @@ from libs.module_init import Global_Module as MyModule
 import time                         # type: ignore
 
 #------------------------------------------------------------------------------
-pix_array_01 = [ 1]
-pix_array_02 = [ 2]
-pix_array_03 = [ 3]
-pix_array_06 = [ 4]
-pix_array_04 = [ 5]
-pix_array_05 = [ 6]
+pix_array_01 = [ 1, 2]
+pix_array_02 = [ 3, 4]
+pix_array_03 = [ 3, 4]
+pix_array_04 = [ 3, 4]
+pix_array_05 = [ 1, 2, 5, 6, 7, 8]
+pix_array_06 = [ 3, 4]
 pix_array_07 = [ 7]
-pix_array_08 = [ 8]
+pix_array_08 = [ 2, 3]
+#---
 pix_array_09 = [ 9]
 pix_array_10 = [10]
 pix_array_11 = [11]
@@ -71,33 +72,43 @@ def main():
                         if MyDecode.get_value_1() == 2:
                             #print("def")
                             MyWS2812.do_all_def()
+                            xio.write_io(0x00)
                     if MyDecode.get_cmd_2() == "obj":
                         #print("obj")
                         #print(MyDecode.get_value_1())
                         #print(segment_map[MyDecode.get_value_1()])
                         MyWS2812.do_all_off()
                         if MyDecode.get_value_1() == 1:
+                            xio.write_io(0x01)
                             for i in pix_array_01:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 2:
+                            xio.write_io(0x02)
                             for i in pix_array_02:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 3:
+                            xio.write_io(0x03)
                             for i in pix_array_03:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 4:
+                            xio.write_io(0x04)
                             for i in pix_array_04:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 5:
+                            xio.write_io(0x05)
                             for i in pix_array_05:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 6:
+                            xio.write_io(0x06)
                             for i in pix_array_06:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 7:
+                            xio.write_io(0x07)
                             for i in pix_array_07:
-                                MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
+                                pass
+                                #MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 8:
+                            xio.write_io(0x08)
                             for i in pix_array_08:
                                 MyWS2812.set_led_obj(i + obj_offset, MyDecode.get_value_2())
                         if MyDecode.get_value_1() == 9:

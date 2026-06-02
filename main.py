@@ -152,12 +152,12 @@ def main():
 if __name__ == "__main__":
 
     if MyModule.inc_ws2812:
-        #print("WS2812 -> Load-Module")
+        print("WS2812 -> Load-Module")
         import libs.module_ws2812_v2 as MyWS2812         # Modul WS2812  -> WS2812-Ansteuerung
-        #print("WS2812 -> Setup")
+        print("WS2812 -> Setup")
         MyWS2812.setup_ws2812()
         ### Test ###
-        #print("WS2812 -> Run self test")
+        print("WS2812 -> Run self test")
         MyWS2812.self_test()
         #print("WS2812 -> Blink Test")
         #MyWS2812.do_blink_test()
@@ -165,18 +165,18 @@ if __name__ == "__main__":
         #MyWS2812.do_dot_test()
 
     if MyModule.inc_decoder:
-        #print("Decode -> Load-Module")
+        print("Decode -> Load-Module")
         import libs.module_decode as MyDecode
-        #print("Decode -> Setup")
+        print("Decode -> Setup")
         MyDecode.decode_setup()
         ### Test ###
         #print("Decode -> Test")
         #MyDecode.decode_input("Test")
 
     if MyModule.inc_serial:
-        #print("Serial-COM -> Load-Module")
+        print("Serial-COM -> Load-Module")
         import libs.module_serial as MySerial
-        #print("Serial-Con -> Setup")
+        print("Serial-Con -> Setup")
         MySerial.sercon_setup()
         ### Test ###
         #print("Serial-Con -> Test")

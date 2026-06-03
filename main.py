@@ -1,7 +1,7 @@
 ######################################################
 ### Main-Program                                   ###
 ### Projekt: BIZCIR-BW-01-Master                   ###
-### Version: 0.99          26.05.2026              ###
+### Version: 1.00          02.06.2026              ###
 ######################################################
 from machine import Pin, Timer      # type: ignore
 from libs.module_init import Global_Module as MyModule

@@ -1,102 +1,42 @@
-# Module Serial
-from machine import UART
-import time
+import uasyncio as asyncio
+from machine import UART, Pin
 
-debug = False
+# UART wie gewohnt initialisieren
+uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1), rxbuf=256)
 
-class SERCON:
-
-    def __init__(self):
-
-        self.uart = UART(0, baudrate=9600, bits=8, parity=None, stop=1)
-        #self.rxData = bytes()
-        self.txData = bytes()
-        self.flag = True
-        self.read_string = ""
-        self.read_flag = True
-        self.ready_flag = False
-
-    def write(self, string):
-        self.txData = str.encode(string)
-        self.uart.write(self.txData)
-
-    def read(self):
-        self.rxData = bytes()
-        while self.uart.any() > 0:
-            #print("Read Start")
-            self.rxData += self.uart.read(1)
-            #rint("Read Byte")
-            time.sleep(0.01)
-            
-        if self.rxData.decode('utf-8') > "":
-            self.read_string = self.rxData.decode('utf-8').strip()
-            #print(self.read_string)
-            return True
-        else:
-            return False
+# Das entspricht funktional deiner Interrupt-Service-Routine
+async def uart_receiver():
+    # StreamReader macht aus dem UART ein asynchrones Event
+    reader = asyncio.StreamReader(uart)
     
-    def get_string(self):
-        return self.read_string
-
-def sercon_setup():
-    
-    global sercon
-    sercon = SERCON()
-
-def sercon_write_out(string):
-    
-    string = string + "\n"
-    sercon.write(string)
-
-def sercon_read_flag():
-    return sercon.read_flag
-
-def get_string():
-    return sercon.read_string
-
-def get_ready_flag():
-    return sercon.ready_flag
-
-def sercon_read_line():
-    if sercon.read():
-        sercon.ready_flag = True
-        #print(sercon.read_string)
-        sercon.write("ack\n")
-        if sercon.read_string == "EOT":
-            sercon.read_flag = False
-    else:
-        sercon.ready_flag = False
-
-###############################################################################
-### Main()
-###############################################################################
-
-def main():
-    
-    sercon_setup()
-    
-    print("Write Test")
-    sercon_write_out("Start Program")
-
-    time.sleep(0.3)
-
-    print("Read Loop")
-    
-    while sercon_read_flag():
-        sercon_read_line()
-        if sercon.ready_flag:
-            print(get_string())    
+    print("Async-UART-Empfänger gestartet...")
+    while True:
+        # Hier "schläft" die Funktion völlig ohne CPU-Last,
+        # bis exakt in dem Moment Daten am RX-Pin eintreffen!
+        line = await reader.readline()
         
-        # Loop-Delay !!!
-        time.sleep(0.01)
-        
-    sercon_write_out("End of Program")
-    print("Ende")
+        # Sobald Daten da sind, geht es sofort hier weiter:
+        print("Empfangen:", line.decode('utf-8').strip())
 
+def uart_sender(value):
+        text = f"Hallo RP2040! {value} \n"
+        uart.write(text.encode('utf-8'))
 
-#------------------------------------------------------------------------------
-#--- Main
-#------------------------------------------------------------------------------
+async def haupt_programm():
+    # Starte den UART-Lauscher im Hintergrund
+    asyncio.create_task(uart_receiver())
+    
+    # Deine normale Hauptschleife
+    counter = 0
+    while True:
+        print(f"Hauptschleife arbeitet ungestört... ({counter})")
+        uart_sender(counter)
+        counter += 1
+        await asyncio.sleep(2) # Nicht-blockierendes Warten!
 
-if __name__ == "__main__":
-    main()
+# Programm starten
+try:
+    asyncio.run(haupt_programm())
+except KeyboardInterrupt:
+    print("Beendet")
+

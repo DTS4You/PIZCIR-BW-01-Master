@@ -3,12 +3,15 @@
 ### Projekt: BIZCIR-BW-01-Master                   ###
 ### Version: 1.01          24.08.2026              ###
 ######################################################
-from machine import Pin
+from machine import UART, Pin
 import time
 import uctypes
 import uasyncio as asyncio
 import libs.module_ws2812_dma as myws2812
 import libs.module_hwdebug as myhwdebug
+
+# UART wie gewohnt initialisieren
+uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1), rxbuf=256)
 
 global hwdebug
 hwdebug = myhwdebug.HWDEBUG()
@@ -17,6 +20,25 @@ leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=175)
 
 global led_offset
 led_offset = 0
+
+# Das entspricht funktional deiner Interrupt-Service-Routine
+async def uart_receiver():
+    # StreamReader macht aus dem UART ein asynchrones Event
+    reader = asyncio.StreamReader(uart)
+    
+    print("Async-UART-Empfänger gestartet...")
+    while True:
+        # Hier "schläft" die Funktion völlig ohne CPU-Last,
+        # bis exakt in dem Moment Daten am RX-Pin eintreffen!
+        line = await reader.readline()
+        
+        # Sobald Daten da sind, geht es sofort hier weiter:
+        print("Empfangen:", line.decode('utf-8').strip())
+
+def uart_sender(value):
+        text = value + "\n"
+        uart.write(text.encode('utf-8'))
+
 
 #------------------------------------------------------------------------------
 # --- Hintergrund-Task simulieren ---
@@ -30,6 +52,7 @@ async def background_heartbeat():
         #print("Hintergrund-Task: Status-LED blinken")
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
+        uart_sender("Heartbeat")
         await asyncio.sleep(blink_time)
 #------------------------------------------------------------------------------
 
@@ -81,6 +104,7 @@ async def main_loop():
 async def main():
     print("Starte Main-Loop und Hintergrund-Task...")
     await asyncio.gather(
+        uart_receiver(),
         main_loop(),
         background_heartbeat()
     )

@@ -4,7 +4,7 @@
 ### Version: 1.01          24.08.2026              ###
 ######################################################
 from machine import UART, Pin
-import time
+import time, sys
 import uctypes
 import uasyncio as asyncio
 import libs.module_ws2812_dma as myws2812
@@ -123,6 +123,7 @@ def wait_hardware_run():
     print("Tastenabfrage...")
     while(hwdebug.read_input()==True):      # Warten, bis die Taste gedrückt wird (LOW)
         time.sleep(0.2)                     # Kurze Pause, um die CPU nicht zu blockieren
+        sys.exit()
     print("Bedingung erfüllt => Starte Programm...")
 
 #------------------------------------------------------------------------------

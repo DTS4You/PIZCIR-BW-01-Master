@@ -18,15 +18,15 @@ def anim_setup():
 
     global anim_obj
     anim_obj = []
-    anim_obj.append(ANIM_OBJ(1, 1,10,anim_pattern[0],1,True))          #  1. Anim / 1. Stripe
-    anim_obj.append(ANIM_OBJ(2, 1,10,anim_pattern[0],1,True))          #  2. Anim / 2. Stripe
-    anim_obj.append(ANIM_OBJ(3, 1,10,anim_pattern[0],1,True))          #  3. Anim / 3. Stripe
-    anim_obj.append(ANIM_OBJ(4, 1,10,anim_pattern[0],1,True))          #  4. Anim / 4. Stripe
-    anim_obj.append(ANIM_OBJ(5, 1,10,anim_pattern[0],1,True))          #  5. Anim / 5. Stripe
-    anim_obj.append(ANIM_OBJ(6, 1,10,anim_pattern[0],1,True))          #  6. Anim / 6. Stripe
-    anim_obj.append(ANIM_OBJ(7, 1,10,anim_pattern[0],1,True))          #  7. Anim / 7. Stripe
-    anim_obj.append(ANIM_OBJ(8, 1,10,anim_pattern[0],1,True))          #  8. Anim / 8. Stripe
-    anim_obj.append(ANIM_OBJ(9, 1,10,anim_pattern[0],1,True))          #  9. Anim / 9. Stripe
+    anim_obj.append(ANIM_OBJ( 1, 1,10,anim_pattern[0],1,True))          #  1. Anim / 1. Stripe
+    anim_obj.append(ANIM_OBJ( 2, 1,10,anim_pattern[0],1,True))          #  2. Anim / 2. Stripe
+    anim_obj.append(ANIM_OBJ( 3, 1,10,anim_pattern[0],1,True))          #  3. Anim / 3. Stripe
+    anim_obj.append(ANIM_OBJ( 4, 1,10,anim_pattern[0],1,True))          #  4. Anim / 4. Stripe
+    anim_obj.append(ANIM_OBJ( 5, 1,10,anim_pattern[0],1,True))          #  5. Anim / 5. Stripe
+    anim_obj.append(ANIM_OBJ( 6, 1,10,anim_pattern[0],1,True))          #  6. Anim / 6. Stripe
+    anim_obj.append(ANIM_OBJ( 7, 1,10,anim_pattern[0],1,True))          #  7. Anim / 7. Stripe
+    anim_obj.append(ANIM_OBJ( 8, 1,10,anim_pattern[0],1,True))          #  8. Anim / 8. Stripe
+    anim_obj.append(ANIM_OBJ( 9, 1,10,anim_pattern[0],1,True))          #  9. Anim / 9. Stripe
     anim_obj.append(ANIM_OBJ(10, 1,10,anim_pattern[0],1,True))         # 10. Anim / 10. Stripe
     anim_obj.append(ANIM_OBJ(11, 1,10,anim_pattern[0],1,True))         # 11. Anim / 11a. Stripe
     anim_obj.append(ANIM_OBJ(11,20,10,anim_pattern[0],1,True))         # 12. Anim / 11b. Stripe
@@ -83,12 +83,14 @@ class ANIM_PATTERN:
         self.led_pattern    = led_pattern
         self.lenght         = len(self.led_pattern)
 
+    
 
 def main():
 
     print("--- Start ---")
 
     pattern_setup()
+    
     anim_setup()
 
     print("Objekte erzeugen")
@@ -103,7 +105,7 @@ def main():
     #    print("Objekt:", i ,"Array:", anim_obj[i].led_array)
 
     print(anim_obj[0].arr_lenght)
-
+    
     for i in range(20):
         
         print(f"Objekt: {anim_obj[0].position:02d} Array: {anim_obj[0].do_anim_step()}")

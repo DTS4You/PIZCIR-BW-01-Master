@@ -1,5 +1,5 @@
-from time import time
-from libs.modul_anim_obj import myanim
+import time
+import libs.modul_anim_obj as myanim
 
 def main():
 
@@ -21,10 +21,14 @@ def main():
 
     print(myanim.anim_obj[0].arr_lenght)
 
+    led_out = []
     for i in range(20):
-        
-        print(f"Objekt: {myanim.anim_obj[0].position:02d} Array: {myanim.anim_obj[0].do_anim_step()}")
-        #print(f"Objekt: {myanim.anim_obj[1].position:02d} Array: {myanim.anim_obj[1].do_anim_step()}")
+
+        led_out = myanim.anim_obj[0].do_anim_step()
+        print(f"Objekt: {myanim.anim_obj[0].position:02d} Array: {led_out}")
+
+        #for i in range(len(led_out)):
+        #    print("LED", i, "State:", led_out[i])
 
         time.sleep(0.2)
     

@@ -79,7 +79,7 @@ def main():
     try:
         print("Start")
 
-        debug = "OUTPUT"
+        debug = "INPUT"
 
         if debug == "OUTPUT":
             print("Write Output")
@@ -100,12 +100,42 @@ def main():
 
             sleep(1)
 
-            xio.set_byte(0xAA)
+            xio.set_byte(0x01)
             xio.write_output()
             print(hex(xio.get_byte()))
 
             sleep(1)
 
+            xio.set_byte(0x02)
+            xio.write_output()
+            print(hex(xio.get_byte()))
+    
+            sleep(1)
+
+            xio.set_byte(0x04)
+            xio.write_output()
+            print(hex(xio.get_byte()))
+
+            sleep(1)
+
+            xio.set_byte(0x08)
+            xio.write_output()
+            print(hex(xio.get_byte()))
+
+            sleep(1)
+
+            xio.set_byte(0x10)
+            xio.write_output()
+            print(hex(xio.get_byte()))
+
+            sleep(1)            
+
+            xio.set_byte(0x20)
+            xio.write_output()
+            print(hex(xio.get_byte()))
+
+            sleep(1)
+        
             xio.set_byte(0x55)
             xio.write_output()
             print(hex(xio.get_byte()))
@@ -129,23 +159,22 @@ def main():
             xio.read_input()
             print(hex(xio.get_byte()))
 
-            print("Bit 0 = " + str(xio.get_bit(0)) + " | Bit 1 = " + str(xio.get_bit(1)) + " | Bit 2 = " + str(xio.get_bit(2)) + " | Bit 3 = " + str(xio.get_bit(3)))
-
             sleep(1)
 
-            for i in range(10):
+            while(True):
                 xio.read_io()
-                print("Bit 0 = " + str(xio.get_bit(0)) + " | Bit 1 = " + str(xio.get_bit(1)) + " | Bit 2 = " + str(xio.get_bit(2)) + " | Bit 3 = " + str(xio.get_bit(3)))
-                sleep(0.5)
+                print("Bit 5 = " + str(xio.get_bit(5)) + " | Bit 4 = " + str(xio.get_bit(4)) + " | Bit 3 = " + str(xio.get_bit(3)) + " | Bit 2 = " + str(xio.get_bit(2)) + " | Bit 1 = " + str(xio.get_bit(1)) + " | Bit 0 = " + str(xio.get_bit(0)))
+                sleep(0.3)
             
-            print("Delete Object")
-            del xio
+            
       
 
     except KeyboardInterrupt:
         print("Keyboard Interrupt")
     finally:
         print("Exiting the program")
+        print("Delete Object")
+        del xio
     print("=== End Main ===")
 
 # ------------------------------------------------------------------------------

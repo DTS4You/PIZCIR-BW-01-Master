@@ -4,6 +4,7 @@
 ### Version: 1.01          24.08.2026              ###
 ######################################################
 from machine import UART, Pin
+from libs.modul_uart_async import AsyncUART
 import time, sys
 import uctypes
 import uasyncio as asyncio
@@ -12,8 +13,7 @@ import libs.module_hwdebug as myhwdebug
 import libs.modul_anim_obj as myanim
 import libs.modul_color_index as mycolor
 
-# UART wie gewohnt initialisieren
-uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1), rxbuf=256)
+
 
 global hwdebug
 hwdebug = myhwdebug.HWDEBUG()
@@ -27,25 +27,24 @@ myanim.anim_setup()
 global led_offset
 led_offset = 0
 
-# Das entspricht funktional deiner Interrupt-Service-Routine
-async def uart_receiver():
-    # StreamReader macht aus dem UART ein asynchrones Event
-    reader = asyncio.StreamReader(uart)
+#------------------------------------------------------------------------------
+# Callback-Funktionen
+#------------------------------------------------------------------------------
+def daten_empfangen_handler(nachricht):
+    print(f"[RX Empfangen]: {nachricht}")
     
-    print("Async-UART-Empfänger gestartet...")
-    while True:
-        # Hier "schläft" die Funktion völlig ohne CPU-Last,
-        # bis exakt in dem Moment Daten am RX-Pin eintreffen!
-        line = await reader.readline()
-        
-        # Sobald Daten da sind, geht es sofort hier weiter:
-        print("Empfangen:", line.decode('utf-8').strip())
-
-def uart_sender(value):
-        text = value + "\n"
-        uart.write(text.encode('utf-8'))
-
-
+    # Beispiel: Auf bestimmte Befehle reagieren und direkt antworten
+    if nachricht.upper() == "PING":
+        uart_dev.send_line("PONG")
+#------------------------------------------------------------------------------
+# Modul-Instanz erstellen (auf UART0, GP0/GP1)
+uart_dev = AsyncUART(
+    uart_id=0,
+    baudrate=9600,
+    tx_pin=0,
+    rx_pin=1,
+    on_receive=daten_empfangen_handler
+)
 #------------------------------------------------------------------------------
 # --- Hintergrund-Task simulieren ---
 #------------------------------------------------------------------------------
@@ -53,12 +52,15 @@ async def background_heartbeat():
     print("Starte Background Task...")
     blink_time = 0.5
     blink_state = False
-
+    counter = 1
     while True:
         #print("Hintergrund-Task: Status-LED blinken")
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
-        uart_sender("Heartbeat")
+        uart_dev.send_line("Heartbeat -> " + str(counter))
+        counter = counter + 1
+        if counter > 99:
+            counter = 1
         await asyncio.sleep(blink_time)
 #------------------------------------------------------------------------------
 
@@ -109,9 +111,10 @@ async def main_loop():
 # --- Alle Tasks starten ---
 #-----------------------------------------------------------------------------
 async def main():
+    # UART-Empfangstask im Hintergrund starten
+    uart_dev.start()
     print("Starte Main-Loop und Hintergrund-Task...")
     await asyncio.gather(
-        uart_receiver(),
         main_loop(),
         background_heartbeat()
     )

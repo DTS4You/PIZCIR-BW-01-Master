@@ -210,7 +210,7 @@ def main():
     print("Starte Viper-beschleunigte Berechnung...")
 
     # --- Hauptschleife ---
-    leds = WS2812Fast(start_pin=2, leds_per_strip=250)
+    leds = WS2812Fast(start_pin=2, leds_per_strip=175)
 
     try:
         while True:

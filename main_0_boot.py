@@ -68,10 +68,12 @@ async def background_heartbeat():
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
         #uart_dev.send_line("Heartbeat -> " + str(counter))
-        # Beispiel: Senden nach Bedarf ausführen
+        #----------------------------------------------------------------------
+        # Beispiel: Senden über Parallel-Bus !!!
         msg = "do,anim," + str(counter)
         print(msg)
         await bus.send_text(msg)
+        #----------------------------------------------------------------------
         counter = counter + 1
         if counter > 99:
             counter = 1
@@ -114,11 +116,7 @@ async def main_loop():
         draw_led_frame(led_offset)
         leds.show()
         inc_offset()
-        #await asyncio.sleep(frame_time)
-        #leds.clear()
-        #leds.show()
         await asyncio.sleep(frame_time)
-        #await asyncio.sleep(0.05)  # Kurze Pause, um die CPU nicht zu blockieren
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------

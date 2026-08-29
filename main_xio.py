@@ -12,7 +12,7 @@ def on_string_received(text):
 
 
 async def main():
-    print("RP2040 Bus aktiv (Modul geladen). Sending data...")
+    print("RP2040 Bus aktiv (Modul geladen). Sende Daten...")
 
     # Empfänger-Task aus der Modul-Klasse starten
     #asyncio.create_task(bus.listen_loop(on_string_received))
@@ -25,6 +25,8 @@ async def main():
         await bus.send_text(msg)
 
         counter += 1
+        if counter > 99:
+            counter = 0
         await asyncio.sleep(0.3)
 
 

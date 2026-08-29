@@ -1,7 +1,7 @@
 ######################################################
 ### Main-Program                                   ###
 ### Projekt: BIZCIR-BW-01-Master                   ###
-### Version: 1.01          24.08.2026              ###
+### Version: 1.02          29.08.2026              ###
 ######################################################
 from machine import UART, Pin
 from libs.modul_uart_async import AsyncUART

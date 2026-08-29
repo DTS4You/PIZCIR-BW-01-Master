@@ -5,6 +5,7 @@
 ######################################################
 from machine import UART, Pin
 from libs.modul_uart_async import AsyncUART
+from libs.modul_xio_bus import ParallelBus
 import time, sys
 import uctypes
 import uasyncio as asyncio
@@ -30,12 +31,17 @@ led_offset = 0
 #------------------------------------------------------------------------------
 # Callback-Funktionen
 #------------------------------------------------------------------------------
+# UART -> hat Daten empfangen
 def daten_empfangen_handler(nachricht):
     print(f"[RX Empfangen]: {nachricht}")
     
     # Beispiel: Auf bestimmte Befehle reagieren und direkt antworten
     if nachricht.upper() == "PING":
         uart_dev.send_line("PONG")
+#------------------------------------------------------------------------------
+# 4-Bit parallel-Bus
+def on_string_received(text):
+    print(f"\n[RX Event] Empfangener Text: '{text}' (Länge: {len(text)})")
 #------------------------------------------------------------------------------
 # Modul-Instanz erstellen (auf UART0, GP0/GP1)
 uart_dev = AsyncUART(
@@ -44,6 +50,10 @@ uart_dev = AsyncUART(
     tx_pin=0,
     rx_pin=1,
     on_receive=daten_empfangen_handler
+)
+# Modul-Bus-Instanz erstellen
+bus = ParallelBus(
+    data_pins=[10, 11, 12, 13], pin_strobe_high=14, pin_strobe_low=15
 )
 #------------------------------------------------------------------------------
 # --- Hintergrund-Task simulieren ---
@@ -58,6 +68,10 @@ async def background_heartbeat():
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
         uart_dev.send_line("Heartbeat -> " + str(counter))
+        # Beispiel: Senden nach Bedarf ausführen
+        msg = "do,anim," + str(counter)
+        print(msg)
+        await bus.send_text(msg)
         counter = counter + 1
         if counter > 99:
             counter = 1
@@ -84,7 +98,7 @@ def draw_led_frame(offset):
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 0.05
+    frame_time = 0.02
     print("Starte WS2812-Berechnung...")
     while True:
         # Aktuelle Adressen des Ziel-Buffers holen

@@ -9,8 +9,8 @@ from libs.modul_xio_bus import ParallelBus
 import time, sys
 import uctypes
 import uasyncio as asyncio
-import libs.module_ws2812_dma as myws2812
-import libs.module_hwdebug as myhwdebug
+import libs.modul_ws2812_dma as myws2812
+import libs.modul_hwdebug as myhwdebug
 import libs.modul_anim_obj as myanim
 import libs.modul_color_index as mycolor
 

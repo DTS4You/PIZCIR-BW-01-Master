@@ -67,7 +67,7 @@ async def background_heartbeat():
         #print("Hintergrund-Task: Status-LED blinken")
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
-        uart_dev.send_line("Heartbeat -> " + str(counter))
+        #uart_dev.send_line("Heartbeat -> " + str(counter))
         # Beispiel: Senden nach Bedarf ausführen
         msg = "do,anim," + str(counter)
         print(msg)

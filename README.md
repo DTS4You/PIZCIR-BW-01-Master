@@ -15,6 +15,7 @@ Funktion:	    HTML-Code	Stripe:
 7. SPOCK        7           !_Nicht vorhanden_!
 8. Galileo	    8   		2, 3 ,                   9 , 10     
 # -----------------------------------------------------------------------------
+Nr. HTML-Code	                    Stripe:
 0	do,all,def	    Default			
 1	do,obj,1,blink	H2Sat	        1, 2	            1, 2	
 2	do,obj,2,blink	EnMap	        3, 4	            3, 4	

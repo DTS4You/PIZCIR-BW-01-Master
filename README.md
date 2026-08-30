@@ -25,7 +25,7 @@ Funktion:	    HTML-Code	Stripe:
 7	do,obj,7,blink	SPOCK	---		
 8	do,obj,8,blink	Galileo	        2, 3, 9, 10	        2, 3	            1, 2
 # -----------------------------------------------------------------------------
-XIO Parallel Bus:   Richtung -> Senden
+XIO Parallel Bus:   Master -> Slave / Richtung -> Senden
 Funktionen:
 Serial Kommandos werden werden über die UART empfangen
 und 1:1 weiter über den Bus gesendet.

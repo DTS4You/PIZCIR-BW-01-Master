@@ -12,7 +12,7 @@ Funktion:	    HTML-Code	Stripe:
 4. SAR-Lupe	    4   		3, 4
 5. SATCOMBw     5		    1, 2, 5, 6, 7, 8
 6. TerraSAR-X	6	    	3, 4,                   13, 14
-7. SPOCK        7           Wird nicht dargestellt !!!
+7. SPOCK        7           !_Nicht vorhanden_!
 8. Galileo	    8   		2, 3 ,                   9 , 10     
 # -----------------------------------------------------------------------------
 0	do,all,def	    Default			

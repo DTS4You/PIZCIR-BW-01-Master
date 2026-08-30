@@ -88,15 +88,10 @@ class ANIM_PATTERN:
 def main():
 
     print("--- Start ---")
-
     pattern_setup()
-    
     anim_setup()
-
     print("Objekte erzeugen")
-    
     anim_obj[1].modifyed = True
-
     print("Anzahl der Anim_Objekte:", len(anim_obj))
     print(anim_obj[0].pattern.lenght)
     print(anim_obj[1].pattern.lenght)

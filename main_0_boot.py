@@ -256,7 +256,7 @@ def draw_led_frame(offset):
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 50  # Standardwert, kann später aus CONFIG geladen werden
+    frame_time = 49  # Standardwert, kann später aus CONFIG geladen werden
     print("Starte WS2812-Berechnung...")
     while True:
         # Aktuelle Adressen des Ziel-Buffers holen

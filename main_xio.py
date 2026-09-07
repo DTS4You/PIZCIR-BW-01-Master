@@ -20,7 +20,8 @@ async def main():
     counter = 0
     while True:
         # Beispiel: Senden nach Bedarf ausführen
-        msg = "do,anim," + str(counter)
+        #msg = "do,obj," + str(counter) + ",blink"
+        msg = str(counter)
         print(msg)
         await bus.send_text(msg)
 

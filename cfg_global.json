@@ -1,0 +1,12 @@
+{
+    "frame_time":   20,
+    "blink_time":  500,
+    "debug_time": 1000,
+    "board_modus": "Master",
+    "load_modul_hwdebug": true,
+    "load_modul_anim_obj": true,
+    "load_modul_fcode": true,
+    "led_offset": 1,
+    "obj_offset": 1,
+    "pattern_offset": 1
+}

@@ -1,0 +1,11 @@
+[
+    {"name": "H2Sat",       "array": [ 1,  2]},
+    {"name": "EnMap",       "array": [ 3,  4]},
+    {"name": "SARah",       "array": [11, 12, 15]},
+    {"name": "SAR_Lupe",    "array": [ 3,  4]},
+    {"name": "SATCOMBw",    "array": [ 1,  2,  5,  6,  7,  8]},
+    {"name": "TerraSAR-X",  "array": [13, 14]},
+    {"name": "SPOCK",       "array": null },
+    {"name": "Galileo",     "array": [ 2,  3,  9, 10]},
+    {"name": "Dummy_1",     "array": 45 }
+]

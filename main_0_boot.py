@@ -6,7 +6,7 @@
 from machine import UART, Pin
 from libs.modul_uart_async import AsyncUART
 from libs.modul_xio_bus import ParallelBus
-import libs.modul_ws2812_dma as myws2812
+import libs.modul_ws2812_dma_bug as myws2812
 import time, sys
 import uctypes
 import uasyncio as asyncio
@@ -177,18 +177,30 @@ def new_input_action(action_input):
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
             if z in treffer_werte:
-                print(f"Treffer: Objekt {z} -> Animation starten")
+                #print(f"Treffer: Objekt {z} -> Animation starten")
+                do_start_anim(z)
             else:
-                print(f"Objekt {z} -> auf Default setzen")
+                #print(f"Objekt {z} -> auf Default setzen")
+                do_stop_anim(z)
 
 #-----------------------------------------------------------------------------
+
+def do_start_anim(value):
+    global anim_obj
+    print(f"[DO] START Animation für Objekt {value}")
+    anim_obj[value - CONFIG["offset_obj"]].modified = True
+
+def do_stop_anim(value):
+    print(f"[DO] STOP  Animation für Objekt {value}")
+    anim_obj[value - CONFIG["offset_obj"]].modified = False
 
 def func_all_def():
     print("[DO] Alle Animationen auf Default setzen.")
     if anim_obj is not None:
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
-            print(f"Objekt {z} -> auf Default setzen")
+            #print(f"Objekt {z} -> auf Default setzen")
+            do_stop_anim(z)
 
 #------------------------------------------------------------------------------
 # --- Hintergrund-Task simulieren ---
@@ -225,19 +237,26 @@ def inc_offset():
     #print("LED Offset:", led_offset)
 
 def draw_led_frame(offset):
+    dummy = 0
     #print("Zeichne LED-Frame mit Offset:", offset)
     for s in range(8):
-        for i in range(5):
-            [r, g, b] = [40, 40, 40]  # Beispielwerte für RGB
-            leds.set_pixel_rgb(s, i + offset, r, g, b)
-        
+        if anim_obj[s].modified:
+            for i in range(5):
+                [r, g, b] = myanim.int32_to_rgb(mycolor[2].rgb32, little_endian=True)
+                #leds.set_pixel_rgb(s, i + offset, r, g, b)
+                leds.set_led(x=i, y=s, r=0, g=40, b=40)
+        else:
+            for i in range(5):
+                [r, g, b] = myanim.int32_to_rgb(mycolor[1].rgb32, little_endian=True)
+                #leds.set_pixel_rgb(s, i + offset, r, g, b)
+                leds.set_led(x=i, y=s, r=0, g=0, b=0)
 
 #------------------------------------------------------------------------------
 # Main-Loop als asynchroner Task
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 30  # Standardwert, kann später aus CONFIG geladen werden
+    frame_time = 50  # Standardwert, kann später aus CONFIG geladen werden
     print("Starte WS2812-Berechnung...")
     while True:
         # Aktuelle Adressen des Ziel-Buffers holen
@@ -247,10 +266,12 @@ async def main_loop():
         #    addrs_ptr = uctypes.addressof(leds.addrs_set1)
         #----------------------------------------------------------------------
         leds.clear()
-        leds.fill_strip_rgb(2,  0,  0, 40)
-        leds.fill_strip_rgb(3,  0, 40,  0)
-        leds.fill_strip_rgb(4, 40,  0,  0)
+        await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
+        #leds.fill_strip_rgb(0,  0,  0, 40)
+        #leds.fill_strip_rgb(1,  0, 40,  0)
+        #leds.fill_strip_rgb(4, 40,  0,  0)
         draw_led_frame(led_offset)
+        await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
         leds.show()
         inc_offset()
         await asyncio.sleep_ms(frame_time)

@@ -95,17 +95,28 @@ print("[Board-Modus]:", CONFIG["board_modus"])
 time.sleep(1.5)
 print("[INIT] -> Alle Module geladen. Starte Hauptprogramm...")
 
+
 #------------------------------------------------------------------------------
 # Callback-Funktionen
 #------------------------------------------------------------------------------
-# UART -> hat Daten empfangen
+# Callback-Funktion: Wird automatisch aufgerufen, wenn Daten eintreffen
 def daten_empfangen_handler(nachricht):
+    global rx_string
     print(f"[RX Empfangen]: {nachricht}")
     
     # Beispiel: Auf bestimmte Befehle reagieren und direkt antworten
     if nachricht.upper() == "PING":
         uart_dev.send_line("PONG")
+    rx_string = nachricht
+    #print(f"[RX] Empfangene Nachricht: '{rx_string}' (Länge: {len(rx_string)})")
+    do_go_out(rx_string)
+
 #------------------------------------------------------------------------------
+def do_go_out(string):
+    print(f"[RX-String] {string}")
+    new_input_action(string)
+#------------------------------------------------------------------------------
+
 # 4-Bit parallel-Bus
 def on_string_received(text):
     print(f"\n[RX Event] Empfangener Text: '{text}' (Länge: {len(text)})")
@@ -122,11 +133,70 @@ uart_dev = AsyncUART(
 bus = ParallelBus(
     data_pins=[10, 11, 12, 13], pin_strobe_high=14, pin_strobe_low=15
 )
+
+#------------------------------------------------------------------------------
+# Neue Eingabe erfassen und verarbeiten
+#------------------------------------------------------------------------------
+def new_input_action(action_input):
+    print(f"[INPUT] Neue Eingabe: '{action_input}'")
+    treffer_werte = []
+    obj_value = None
+    
+    if action_input.startswith("do,obj,"):
+        parts = action_input.split(",")
+        if len(parts) == 4 and parts[2].isdigit():
+            obj_value = int(parts[2])
+            print(f"Objekt-Wert erkannt: {obj_value}")
+        else:
+            print(f"[INPUT-FEHLER] Ungültiges Format: {action_input}")
+            return
+    elif action_input == "do,all,def":
+        print("[INPUT] Befehl 'do,all,def' erkannt. Setze alle Animationen auf Default.")
+        func_all_def()
+        return
+    else:
+        print(f"[INPUT] Befehl wird nicht von 'do,obj,x,y' oder 'do,all,def' behandelt.")
+        return
+
+    # Prüfen, ob das Modul fcode überhaupt geladen wurde
+    if fcode_array is None or not CONFIG["load_modul_fcode"]:
+        print("[INPUT-FEHLER] Modul F-Code ist nicht geladen.")
+        return
+
+    # Abfangen von Bereichsfehlern beim Zugriff auf das Array
+    idx = obj_value - CONFIG["offset_obj"]
+    if 0 <= idx < len(fcode_array):
+        treffer_werte = myfcode.get_array_from_obj(fcode_array, idx)
+        print(f"Treffer-Werte: {treffer_werte}")
+    else:
+        print(f"[INPUT-FEHLER] Index {idx} außerhalb des F-Code-Bereichs.")
+        return
+
+    # Animationen schalten
+    if anim_obj is not None:
+        for i in range(len(anim_obj)):
+            z = i + CONFIG["offset_obj"]
+            if z in treffer_werte:
+                print(f"Treffer: Objekt {z} -> Animation starten")
+            else:
+                print(f"Objekt {z} -> auf Default setzen")
+
+#-----------------------------------------------------------------------------
+
+def func_all_def():
+    print("[DO] Alle Animationen auf Default setzen.")
+    if anim_obj is not None:
+        for i in range(len(anim_obj)):
+            z = i + CONFIG["offset_obj"]
+            print(f"Objekt {z} -> auf Default setzen")
+
 #------------------------------------------------------------------------------
 # --- Hintergrund-Task simulieren ---
 #------------------------------------------------------------------------------
 async def background_heartbeat():
     print("Starte Background Task...")
+    # UART-Empfangstask im Hintergrund starten
+    uart_dev.start()
     blink_time = 0.5
     blink_state = False
     counter = 1
@@ -138,7 +208,7 @@ async def background_heartbeat():
         #----------------------------------------------------------------------
         # Beispiel: Senden über Parallel-Bus !!!
         msg = "do," + str(counter)
-        print(msg)
+        #print(msg)
         await bus.send_text(msg)
         #----------------------------------------------------------------------
         counter = counter + 1
@@ -167,7 +237,7 @@ def draw_led_frame(offset):
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 0.02
+    frame_time = 30  # Standardwert, kann später aus CONFIG geladen werden
     print("Starte WS2812-Berechnung...")
     while True:
         # Aktuelle Adressen des Ziel-Buffers holen
@@ -183,15 +253,14 @@ async def main_loop():
         draw_led_frame(led_offset)
         leds.show()
         inc_offset()
-        await asyncio.sleep(frame_time)
+        await asyncio.sleep_ms(frame_time)
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # --- Alle Tasks starten ---
 #-----------------------------------------------------------------------------
 async def main():
-    # UART-Empfangstask im Hintergrund starten
-    uart_dev.start()
+    
     print("Starte Main-Loop und Hintergrund-Task...")
     await asyncio.gather(
         main_loop(),

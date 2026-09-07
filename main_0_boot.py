@@ -12,11 +12,12 @@ import uctypes
 import uasyncio as asyncio
 import json
 
-
-
+#-----------------------------------------------------------------------------
+# WS2812-Instanz erstellen (auf Pin 2, 175 LEDs pro Strip)
+#-----------------------------------------------------------------------------
 global ws2812
 leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=175)
-
+#-----------------------------------------------------------------------------
 
 global led_offset
 led_offset = 0

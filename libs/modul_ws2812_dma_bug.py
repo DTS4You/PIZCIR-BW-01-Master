@@ -5,17 +5,20 @@ from machine import Pin, mem32
 import rp2
 import uctypes
 
-# --- PIO ASSEMBLY (WS2812 Timing: 800 kHz) ---
+# Opcode für "jmp 0" im RP2040 PIO-Assembler
+JMP_0_INSTR = 0x0000
+
+# --- PIO ASSEMBLY (WS2812 Timing: 800 kHz mit 32-Bit Autopull) ---
 @rp2.asm_pio(sideset_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_LEFT, 
-             autopull=True, pull_thresh=24)
+             autopull=True, pull_thresh=32)
 def ws2812_parallel():
     wrap_target()
     label("bitloop")
-    out(x, 1)               .side(0) [2]
-    jmp(not_x, "do_zero")   .side(1) [1]
-    jmp("bitloop")          .side(1) [4]
+    out(x, 1)               .side(0) [2]  # T1: HIGH für T0H & T1H
+    jmp(not_x, "do_zero")   .side(1) [1]  # T2: Bleibt HIGH wenn Bit 1, geht LOW wenn Bit 0
+    jmp("bitloop")          .side(1) [4]  # T3 (Bit 1): Verlängert HIGH
     label("do_zero")
-    nop()                   .side(0) [4]
+    nop()                   .side(0) [4]  # T3 (Bit 0): Zieht Output auf LOW
     wrap()
 
 
@@ -24,6 +27,7 @@ def ws2812_parallel():
 def set_pixel(strip_addrs_ptr: ptr32, x: int, y: int, r: int, g: int, b: int, leds_per_strip: int):
     """Setzt ein einzelnes Pixel (x, y) direkt im aktiven Back-Buffer."""
     if y >= 0 and y <= 7 and x >= 0 and x < leds_per_strip:
+        # 24 Bit Daten in den obersten Bits (31..8), Bits 7..0 sind Null-Padding
         color = (g << 24) | (r << 16) | (b << 8)
         buf_ptr = ptr32(strip_addrs_ptr[y])
         buf_ptr[x] = color
@@ -72,7 +76,7 @@ class WS2812Fast:
         self.leds_per_strip = leds_per_strip
         self.DMA_BASE = 0x50000000
         
-        # Double-Buffering
+        # Double-Buffering mit 0-Initialisierung
         self.buffer_sets = [
             [array.array("I", [0] * leds_per_strip) for _ in range(8)],
             [array.array("I", [0] * leds_per_strip) for _ in range(8)]
@@ -85,27 +89,42 @@ class WS2812Fast:
         self.dma_configs = array.array("I", [0] * 8)
         self.sm_list = []
         
-        # 1. DMA-Kanäle vorab sicher stoppen
+        # 1. Stoppe alle DMA-Kanäle vorab
         DMA_ABORT = self.DMA_BASE + 0x444
         mem32[DMA_ABORT] = 0xFF
         while mem32[DMA_ABORT] != 0:
             pass
 
+        # DREQ-Mapping für PIO0 (0..3) und PIO1 (8..11)
         dreq_map = [0, 1, 2, 3, 8, 9, 10, 11]
 
+        # 2. State Machines & DMA zurücksetzen
         for i in range(8):
-            # Pin direkt mit initialem LOW-State definieren
             pin = Pin(start_pin + i, Pin.OUT, value=0)
+            
+            # StateMachine konfigurieren (8 MHz = 125ns Taktzeit)
             sm = rp2.StateMachine(i, ws2812_parallel, freq=8_000_000, sideset_base=pin)
-            sm.active(1)
+            
+            sm.active(0)
+            sm.restart()
+            sm.exec(JMP_0_INSTR)  # Setzt Programmzähler exakt auf 0
+            
             self.sm_list.append(sm)
             
             dreq = dreq_map[i]
+            # CTRL Config: DREQ, INCR_READ (1<<4), DATA_SIZE=32-Bit (2<<2), ENABLE (1)
             self.dma_configs[i] = (dreq << 15) | (1 << 4) | (2 << 2) | 1
+            
+            # Ziel-FIFO Adresse der jeweiligen SM
             dest_fifo = (0x50200010 + (i * 4)) if i < 4 else (0x50300010 + ((i - 4) * 4))
             
             base = self.DMA_BASE + (i * 0x40)
-            mem32[base + 0x04] = dest_fifo
+            mem32[base + 0x0C] = 0         # Reset CTRL
+            mem32[base + 0x04] = dest_fifo # Set Write Addr
+
+        # 3. Alle SMs synchron starten
+        for sm in self.sm_list:
+            sm.active(1)
 
     def clear(self):
         addrs_ptr = uctypes.addressof(self.addrs_set0) if self.write_index == 0 else uctypes.addressof(self.addrs_set1)
@@ -120,7 +139,7 @@ class WS2812Fast:
                 buf_ptr[i] = 0
 
     def set_led(self, x: int, y: int, r: int, g: int, b: int):
-        """Setzt eine einzelne LED an Position x (Index auf Streifen) und y (Kanal 0-7)"""
+        """Setzt ein einzelnes Pixel auf Streifen y (0..7) an Position x."""
         addrs_ptr = uctypes.addressof(self.addrs_set0) if self.write_index == 0 else uctypes.addressof(self.addrs_set1)
         set_pixel(addrs_ptr, x, y, r, g, b, self.leds_per_strip)
 
@@ -129,22 +148,25 @@ class WS2812Fast:
         draw_line(addrs_ptr, x0, y0, x1, y1, r, g, b, self.leds_per_strip)
 
     def show(self):
+        # 1. Warten, bis alle laufenden DMA-Übertragungen fertig sind
         for i in range(8):
-            while mem32[self.DMA_BASE + (i * 0x40) + 0x0C] & (1 << 24):
+            while mem32[self.DMA_BASE + (i * 0x40) + 0x0C] & (1 << 24): # BUSY Bit
                 pass
         
-        # Sicherer Reset-Spreizwert für alle WS2812B-Varianten
+        # 2. Reset / Latch-Zeit für WS2812 (>280 µs)
         time.sleep_us(350)
         
         read_idx = self.write_index
         active_buffers = self.buffer_sets[read_idx]
         
+        # 3. Alle 8 DMA-Kanäle zeitnah feuern
         for i in range(8):
             base = self.DMA_BASE + (i * 0x40)
-            mem32[base + 0x00] = uctypes.addressof(active_buffers[i])
-            mem32[base + 0x08] = self.leds_per_strip
-            mem32[base + 0x0C] = self.dma_configs[i]
-            
+            mem32[base + 0x00] = uctypes.addressof(active_buffers[i]) # READ ADDR
+            mem32[base + 0x08] = self.leds_per_strip                 # TRANS COUNT
+            mem32[base + 0x0C] = self.dma_configs[i]                  # CTRL / START
+
+        # 4. Buffer umschalten
         self.write_index = 1 - self.write_index
 
     def cleanup(self):
@@ -164,16 +186,16 @@ def test_ws2812():
     leds = WS2812Fast(start_pin=2, leds_per_strip=250)
 
     try:
-        print("Setze die ersten 5 LEDs einzeln in Weiß...")
+        print("Setze Puffer auf 0 (Clear)...")
         leds.clear()
         
+        print("Setze die ersten 5 LEDs auf Streifen 0 bis 7 in Cyan...")
         for y in range(8):
             for x in range(5):
-                leds.set_led(x=x, y=y, r=0, g=40, b=40)
+                leds.set_led(x=x, y=y, r=0, g=30, b=30)
         
         leds.show()
-        
-        print("Ausgabe gesendet. Warte 10 Sekunden...")
+        print("Daten gesendet! Pruefe die LEDs.")
         time.sleep(10)
 
     finally:
@@ -182,3 +204,4 @@ def test_ws2812():
 
 if __name__ == "__main__":
     test_ws2812()
+

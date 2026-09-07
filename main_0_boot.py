@@ -6,7 +6,7 @@
 from machine import UART, Pin
 from libs.modul_uart_async import AsyncUART
 from libs.modul_xio_bus import ParallelBus
-import libs.modul_ws2812_dma_bug as myws2812
+import libs.modul_ws2812_dma_new as myws2812
 import time, sys
 import uctypes
 import uasyncio as asyncio

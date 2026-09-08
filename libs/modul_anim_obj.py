@@ -315,8 +315,8 @@ def fill_array_with_color(array, color_index):
 #------------------------------------------------------------------------------
 def main():
 
-    debug_anim  = False
-    debug_color = True
+    debug_anim  = True
+    debug_color = False
     debug_fill  = False
 
     print("--- Start Color Test ---")

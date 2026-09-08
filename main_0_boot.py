@@ -16,7 +16,7 @@ import json
 # WS2812-Instanz erstellen (auf Pin 2, 175 LEDs pro Strip)
 #-----------------------------------------------------------------------------
 global ws2812
-leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=175)
+leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=176)
 #-----------------------------------------------------------------------------
 
 global led_offset
@@ -231,8 +231,8 @@ async def background_heartbeat():
 
 def inc_offset():
     global led_offset
-    led_offset = led_offset + 1
-    if led_offset > 20:
+    led_offset = led_offset + 2
+    if led_offset > 170:
         led_offset = 0
     #print("LED Offset:", led_offset)
 
@@ -244,19 +244,19 @@ def draw_led_frame(offset):
             for i in range(5):
                 [r, g, b] = myanim.int32_to_rgb(mycolor[2].rgb32, little_endian=True)
                 #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                leds.set_led(x=i, y=s, r=0, g=40, b=40)
+                leds.set_led(x=i + offset, y=s, r=0, g=40, b=40)
         else:
             for i in range(5):
                 [r, g, b] = myanim.int32_to_rgb(mycolor[1].rgb32, little_endian=True)
                 #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                leds.set_led(x=i, y=s, r=0, g=0, b=0)
+                leds.set_led(x=i + offset, y=s, r=0, g=0, b=0)
 
 #------------------------------------------------------------------------------
 # Main-Loop als asynchroner Task
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 49  # Standardwert, kann später aus CONFIG geladen werden
+    frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
     print("Starte WS2812-Berechnung...")
     while True:
         # Aktuelle Adressen des Ziel-Buffers holen
@@ -266,12 +266,12 @@ async def main_loop():
         #    addrs_ptr = uctypes.addressof(leds.addrs_set1)
         #----------------------------------------------------------------------
         leds.clear()
-        await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
+        #await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
         #leds.fill_strip_rgb(0,  0,  0, 40)
         #leds.fill_strip_rgb(1,  0, 40,  0)
         #leds.fill_strip_rgb(4, 40,  0,  0)
         draw_led_frame(led_offset)
-        await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
+        #await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
         leds.show()
         inc_offset()
         await asyncio.sleep_ms(frame_time)

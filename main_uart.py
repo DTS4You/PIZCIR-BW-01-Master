@@ -1,5 +1,5 @@
 import uasyncio as asyncio
-from libs.modul_uart_async import AsyncUART
+from libs.uart_async import AsyncUART
 
 # Callback-Funktion: Wird automatisch aufgerufen, wenn Daten eintreffen
 def daten_empfangen_handler(nachricht):

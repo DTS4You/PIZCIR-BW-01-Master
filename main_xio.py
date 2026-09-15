@@ -1,5 +1,5 @@
 import asyncio
-from libs.modul_xio_bus import ParallelBus
+from libs.xio_bus import ParallelBus
 
 # Bus-Instanz erstellen
 bus = ParallelBus(

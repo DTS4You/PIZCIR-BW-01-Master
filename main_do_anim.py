@@ -1,5 +1,5 @@
 import time
-import libs.modul_anim_obj as myanim
+import libs.anim_obj as myanim
 
 def main():
 

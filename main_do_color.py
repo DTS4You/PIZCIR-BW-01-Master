@@ -1,5 +1,5 @@
 import time
-import libs.modul_color_index as mycolor
+import libs.color_index as mycolor
 
 def main():
 

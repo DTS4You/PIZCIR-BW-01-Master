@@ -4,9 +4,9 @@
 ### Version: 1.02          29.08.2026              ###
 ######################################################
 from machine import UART, Pin
-from libs.modul_uart_async import AsyncUART
-from libs.modul_xio_bus import ParallelBus
-import libs.modul_ws2812_dma_new as myws2812
+from libs.uart_async import AsyncUART
+from libs.xio_bus import ParallelBus
+import libs.ws2812_dma_new as myws2812
 import time, sys
 import uctypes
 import uasyncio as asyncio
@@ -62,7 +62,7 @@ load_global_config("cfg_global.json")
 if CONFIG["load_modul_hwdebug"]:
     print("[INIT] -> Modul Hardware-Debug wird geladen...")
     global hwdebug
-    import libs.modul_hwdebug as myhwdebug
+    import libs.hwdebug as myhwdebug
     hwdebug = myhwdebug.HWDEBUG()
 else:
     print("[INIT] ## Modul Hardware-Debug wird nicht geladen ##")
@@ -70,7 +70,7 @@ else:
 if CONFIG["load_modul_anim_obj"]:
     print("[INIT] -> Modul Animationsobjekte wird geladen...")
     global anim_obj
-    import libs.modul_anim_obj as myanim
+    import libs.anim_obj as myanim
     color_file = "cfg_colors.json"
     mycolor = myanim.load_or_create_colors(color_file)
     patterns_file   = "cfg_patterns.json"
@@ -85,7 +85,7 @@ else:
 if CONFIG["load_modul_fcode"]:
     print("[INIT] -> Modul F-Code wird geladen...")
     global fcode_array
-    import libs.modul_fcode as myfcode
+    import libs.fcode as myfcode
     filepath = "cfg_fcode_array.json"
     fcode_array = myfcode.load_or_create_json(filepath)
 else:

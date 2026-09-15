@@ -6,7 +6,8 @@
 from machine import UART, Pin
 from libs.uart_async import AsyncUART
 from libs.xio_bus import ParallelBus
-import libs.ws2812_dma_new as myws2812
+#import libs.ws2812_dma_new as myws2812
+import libs.ws2812_parallel as myws2812
 import time, sys
 import uctypes
 import uasyncio as asyncio
@@ -15,7 +16,7 @@ import json
 #-----------------------------------------------------------------------------
 # WS2812-Instanz erstellen (auf Pin 2, 175 LEDs pro Strip)
 #-----------------------------------------------------------------------------
-global ws2812
+global leds
 leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=176)
 #-----------------------------------------------------------------------------
 

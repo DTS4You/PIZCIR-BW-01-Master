@@ -286,3 +286,34 @@ class WS2812ParallelAsync:
             self.sm.active(0)
             self.dma.close()
 
+    def deinit_sync(self, blackout=True):
+        """Schaltet DMA und PIO sofort synchron ohne Event Loop ab."""
+        if blackout:
+            # Puffer leeren
+            self.clear()
+            # Synchronen Bitplane-Block erzeugen & senden (ohne await)
+            frame = self._frames[self._draw]
+            tx = self._tx[self._spare_tx]
+            
+            # Einmalige synchrone Bit-Konvertierung
+            oi = 0
+            for led in range(self.leds):
+                for bit in range(23, -1, -1):
+                    test = 1 << bit
+                    mask = 0
+                    for ch in range(CHANNELS):
+                        if frame[ch][led] & test:
+                            mask |= 1 << ch
+                    tx[oi] = mask
+                    oi += 1
+
+            # DMA synchron triggern
+            self.dma.config(
+                read=tx, write=self.sm,
+                count=len(tx), ctrl=self._dma_ctrl, trigger=True
+            )
+            time.sleep_ms(self.reset_ms)
+
+        # Hardware sofort deaktivieren
+        self.sm.active(0)
+        self.dma.close()

@@ -6,19 +6,12 @@
 from machine import UART, Pin
 from libs.uart_async import AsyncUART
 from libs.xio_bus import ParallelBus
-#import libs.ws2812_dma_new as myws2812
-import libs.ws2812_parallel as myws2812
+from libs.ws2812_parallel_async import WS2812ParallelAsync
 import time, sys
 import uctypes
 import uasyncio as asyncio
 import json
 
-#-----------------------------------------------------------------------------
-# WS2812-Instanz erstellen (auf Pin 2, 175 LEDs pro Strip)
-#-----------------------------------------------------------------------------
-global leds
-leds = myws2812.WS2812Fast(start_pin=2, leds_per_strip=176)
-#-----------------------------------------------------------------------------
 
 global led_offset
 led_offset = 0
@@ -33,6 +26,8 @@ def load_global_config(filepath="config.json"):
     
     # Standardwerte (Fallbacks), falls die JSON-Datei fehlt oder unvollständig ist
     defaults = {
+        "leds_per_stripe": 178,
+        "leds_brightness": 64,
         "frame_time": 20,
         "blink_time": 500,
         "debug_time": 1000,
@@ -93,7 +88,8 @@ else:
     print("[INIT] ## Modul F-Code wird nicht geladen ##")
 
 print("[Board-Modus]:", CONFIG["board_modus"])
-time.sleep(1.5)
+print("[LEDs per Stripe]:", CONFIG["leds_per_stripe"])
+print("[LEDs Helligkeit]:", CONFIG["leds_brightness"])
 print("[INIT] -> Alle Module geladen. Starte Hauptprogramm...")
 
 
@@ -122,7 +118,22 @@ def do_go_out(string):
 def on_string_received(text):
     print(f"\n[RX Event] Empfangener Text: '{text}' (Länge: {len(text)})")
 #------------------------------------------------------------------------------
-# Modul-Instanz erstellen (auf UART0, GP0/GP1)
+
+#-----------------------------------------------------------------------------
+# WS2812-Instanz erstellen (auf Pin 2, 175 LEDs pro Strip)
+#-----------------------------------------------------------------------------
+global leds
+leds = WS2812ParallelAsync(
+        leds=200,
+        first_pin=2,
+        brightness=64,
+        sm_id=0,
+        yield_every=8,
+        reset_us=300,
+    )
+#-----------------------------------------------------------------------------
+# Instanz erstellen (auf UART0, GP0/GP1)
+#------------------------------------------------------------------------------
 uart_dev = AsyncUART(
     uart_id=0,
     baudrate=9600,
@@ -130,10 +141,13 @@ uart_dev = AsyncUART(
     rx_pin=1,
     on_receive=daten_empfangen_handler
 )
-# Modul-Bus-Instanz erstellen
+#------------------------------------------------------------------------------
+# Instanz erstellen parallel Bus über XIO-Pins
+#------------------------------------------------------------------------------
 bus = ParallelBus(
     data_pins=[10, 11, 12, 13], pin_strobe_high=14, pin_strobe_low=15
 )
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # Neue Eingabe erfassen und verarbeiten
@@ -245,12 +259,12 @@ def draw_led_frame(offset):
             for i in range(5):
                 [r, g, b] = myanim.int32_to_rgb(mycolor[2].rgb32, little_endian=True)
                 #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                leds.set_led(x=i + offset, y=s, r=0, g=40, b=40)
+                #leds.set_led(x=i + offset, y=s, r=0, g=40, b=40)
         else:
             for i in range(5):
                 [r, g, b] = myanim.int32_to_rgb(mycolor[1].rgb32, little_endian=True)
                 #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                leds.set_led(x=i + offset, y=s, r=0, g=0, b=0)
+                #leds.set_led(x=i + offset, y=s, r=0, g=0, b=0)
 
 #------------------------------------------------------------------------------
 # Main-Loop als asynchroner Task
@@ -260,20 +274,10 @@ async def main_loop():
     frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
     print("Starte WS2812-Berechnung...")
     while True:
-        # Aktuelle Adressen des Ziel-Buffers holen
-        #if leds.write_index == 0:
-        #    addrs_ptr = uctypes.addressof(leds.addrs_set0)
-        #else:
-        #    addrs_ptr = uctypes.addressof(leds.addrs_set1)
-        #----------------------------------------------------------------------
         leds.clear()
-        #await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
-        #leds.fill_strip_rgb(0,  0,  0, 40)
-        #leds.fill_strip_rgb(1,  0, 40,  0)
-        #leds.fill_strip_rgb(4, 40,  0,  0)
-        draw_led_frame(led_offset)
-        #await asyncio.sleep_ms(1)  # Kurze Pause, um die CPU nicht zu blockieren
-        leds.show()
+        #draw_led_frame(led_offset)
+        leds.fill_all((20,20,20))
+        await leds.show(copy=False)
         inc_offset()
         await asyncio.sleep_ms(frame_time)
 #------------------------------------------------------------------------------
@@ -309,13 +313,20 @@ try:
 except KeyboardInterrupt:
     hwdebug.write_output(0)
     print("Programm wurde durch Benutzer abgebrochen.")
+    main_loop.cancel()
+    background_heartbeat.cancel()
+finally:
     leds.clear()
-    leds.show()
-    leds.cleanup()
-    del leds
+    asyncio.run(leds.show(copy=False))
+    time.sleep(0.1)
+    asyncio.run(leds.deinit(blackout=True))
+    print("Hardware sauber heruntergefahren...")
     #--------------------------------------------------------------------------
     #--- Reset des Controllers ---
     #--------------------------------------------------------------------------
+    print("===RESET===")
+    time.sleep(0.3)
     machine.reset()
+    #___Go_Home___
     #--------------------------------------------------------------------------
 #==============================================================================

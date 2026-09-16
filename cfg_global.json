@@ -1,4 +1,6 @@
 {
+    "leds_per_stripe": 178,
+    "leds_brightness": 64,
     "frame_time":   20,
     "blink_time":  500,
     "debug_time": 1000,

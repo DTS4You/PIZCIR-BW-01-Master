@@ -3,6 +3,10 @@ from array import array
 import uasyncio as asyncio
 from libs.ws2812_parallel_async import WS2812ParallelAsync
 
+import machine
+machine.freq(250_000_000)  # Verdoppelt die Rechenleistung der CPU
+
+
 LEDS = 178
 
 @micropython.viper
@@ -35,13 +39,16 @@ async def animate_arrays(leds):
 
         leds.set_all_channels(ch_buffers)
         await leds.show(copy=False)
-        
-        pos = (pos + 2) % LEDS
+
+        if pos < 170:
+            pos = pos + 1
+        else:
+            pos = 0
         await asyncio.sleep_ms(10)
 
 
 async def main():
-    leds = WS2812ParallelAsync(leds=LEDS, first_pin=2, brightness=255)
+    leds = WS2812ParallelAsync(leds=LEDS, first_pin=2, brightness=255, yield_every=LEDS, reset_us=300)
     try:
         await animate_arrays(leds)
     finally:

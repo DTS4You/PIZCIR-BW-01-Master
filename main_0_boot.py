@@ -244,42 +244,30 @@ async def background_heartbeat():
         await asyncio.sleep(blink_time)
 #------------------------------------------------------------------------------
 
-def inc_offset():
-    global led_offset
-    led_offset = led_offset + 2
-    if led_offset > 170:
-        led_offset = 0
-    #print("LED Offset:", led_offset)
-
-def draw_led_frame(offset):
-    dummy = 0
-    #print("Zeichne LED-Frame mit Offset:", offset)
-    for s in range(8):
-        if anim_obj[s].modified:
-            for i in range(5):
-                [r, g, b] = myanim.int32_to_rgb(mycolor[2].rgb32, little_endian=True)
-                #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                #leds.set_led(x=i + offset, y=s, r=0, g=40, b=40)
-        else:
-            for i in range(5):
-                [r, g, b] = myanim.int32_to_rgb(mycolor[1].rgb32, little_endian=True)
-                #leds.set_pixel_rgb(s, i + offset, r, g, b)
-                #leds.set_led(x=i + offset, y=s, r=0, g=0, b=0)
-
 #------------------------------------------------------------------------------
 # Main-Loop als asynchroner Task
 #------------------------------------------------------------------------------
 async def main_loop():
 
     frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
+    offset = 0
     print("Starte WS2812-Berechnung...")
     while True:
         leds.clear()
-        #draw_led_frame(led_offset)
-        leds.fill_all((20,20,20))
+        for s in range(8):
+            if anim_obj[s].modified:
+                for i in range(2):
+                    leds.pixel(s, i + offset, (0, 150, 150))
+            else:
+                for i in range(2):
+                    leds.pixel(s, i + offset, (0, 0, 10))
         await leds.show(copy=False)
-        inc_offset()
+        if offset < 150:
+            offset += 1
+        else:
+            offset = 0
         await asyncio.sleep_ms(frame_time)
+
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------

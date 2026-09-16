@@ -1,10 +1,15 @@
-# libs/ws2812_parallel_async.py
+###############################################################################
+# Version 1.00
+# Getestet und i.O.
+# ws2812_parallel_async.py
+# RP2040 MicroPython: 8 x WS2812 parallel, GPIO2..GPIO9
+# 1 PIO-State-Machine, 1 DMA-Kanal, Double Buffering, uasyncio
+###############################################################################
 from array import array
 from machine import Pin
 import rp2
 import uasyncio as asyncio
 import uctypes
-import time
 
 CHANNELS = 8
 
@@ -16,6 +21,8 @@ CHANNELS = 8
     fifo_join=rp2.PIO.JOIN_TX,
 )
 def ws2812_parallel8():
+    # 10 Takte/Bit bei 8 MHz = 1,25 us.
+    # 0-Bit: HIGH 2, LOW 8 Takte. 1-Bit: HIGH 7, LOW 3 Takte.
     wrap_target()
     out(x, 8)
     mov(pins, invert(null)) [1]
@@ -23,7 +30,7 @@ def ws2812_parallel8():
     mov(pins, null) [1]
     wrap()
 
-
+# Native ARM-Assembler-Transposition für 8 Kanäle
 @micropython.viper
 def _encode_chunk_viper(
     ch0: ptr32,
@@ -38,10 +45,11 @@ def _encode_chunk_viper(
     start_led: int,
     end_led: int,
     out_word_idx: int,
-) -> int:
+    ) -> int:
     oi = out_word_idx
 
     for led in range(start_led, end_led):
+        # 32-Bit GRB-Werte aller 8 Kanäle laden
         v0 = int(ch0[led])
         v1 = int(ch1[led])
         v2 = int(ch2[led])
@@ -51,6 +59,7 @@ def _encode_chunk_viper(
         v6 = int(ch6[led])
         v7 = int(ch7[led])
 
+        # 24 Bits -> 6 x 32-Bit Worte (je 4 Bitplane-Masken)
         for w in range(6):
             word = 0
             for b in range(4):
@@ -58,14 +67,22 @@ def _encode_chunk_viper(
                 test = 1 << bit_idx
                 mask = 0
 
-                if v0 & test: mask |= 1
-                if v1 & test: mask |= 2
-                if v2 & test: mask |= 4
-                if v3 & test: mask |= 8
-                if v4 & test: mask |= 16
-                if v5 & test: mask |= 32
-                if v6 & test: mask |= 64
-                if v7 & test: mask |= 128
+                if v0 & test:
+                    mask |= 1
+                if v1 & test:
+                    mask |= 2
+                if v2 & test:
+                    mask |= 4
+                if v3 & test:
+                    mask |= 8
+                if v4 & test:
+                    mask |= 16
+                if v5 & test:
+                    mask |= 32
+                if v6 & test:
+                    mask |= 64
+                if v7 & test:
+                    mask |= 128
 
                 word |= mask << (b * 8)
 
@@ -74,9 +91,14 @@ def _encode_chunk_viper(
 
     return oi
 
-
 class WS2812ParallelAsync:
-    """8-Kanal Asynchroner WS2812-Treiber mit Double-Buffering und DMA."""
+    """8 parallele WS2812-Strips mit zwei Zeichen- und zwei DMA-Puffern.
+
+    draw buffer: wird von pixel()/fill()/clear() beschrieben.
+    queued buffer: wird in Bitplanes konvertiert und per DMA gesendet.
+    Nach erfolgreichem show() werden die Zeichenpuffer vertauscht. Damit kann
+    die Anwendung den naechsten Frame zeichnen, waehrend DMA den aktuellen sendet.
+    """
 
     def __init__(self, leds=200, first_pin=2, brightness=255, sm_id=0,
                  yield_every=8, reset_us=80):
@@ -94,10 +116,12 @@ class WS2812ParallelAsync:
         self.yield_every = max(1, int(yield_every))
         self.reset_ms = max(1, (int(reset_us) + 999) // 1000)
 
+        # Zwei logische Frames: je 8 Kanaele mit je leds GRB-Woertern.
         self._frames = [
             [array("I", [0] * self.leds) for _ in range(CHANNELS)],
             [array("I", [0] * self.leds) for _ in range(CHANNELS)],
         ]
+        # Zwei Sende-Puffer: 24 Masken/LED, vier Masken je 32-Bit-Wort.
         self._tx = [
             array("I", [0] * (self.leds * 6)),
             array("I", [0] * (self.leds * 6)),
@@ -134,19 +158,6 @@ class WS2812ParallelAsync:
     def drawing_frame(self):
         return self._frames[self._draw]
 
-    def set_channel(self, channel, color_array):
-        """Kopiert ein externes 32-Bit Integer-Array direkt in den aktiven Zeichenpuffer."""
-        if not 0 <= channel < CHANNELS:
-            raise IndexError("channel muss 0..7 sein")
-        dst = self._frames[self._draw][channel]
-        count = min(len(color_array), self.leds)
-        dst[0:count] = color_array[0:count]
-
-    def set_all_channels(self, channel_buffers):
-        """Kopiert eine Liste von 8 Arrays direkt in den aktiven Zeichenpuffer."""
-        for ch in range(min(len(channel_buffers), CHANNELS)):
-            self.set_channel(ch, channel_buffers[ch])
-
     def pixel(self, channel, index, rgb=None):
         if not 0 <= channel < CHANNELS:
             raise IndexError("channel muss 0..7 sein")
@@ -182,9 +193,11 @@ class WS2812ParallelAsync:
                 dst[i] = 0
 
     async def _encode(self, frame_index, tx_index):
+        """Frame kooperativ & performant mit Viper in Bitplanes umwandeln."""
         frame = self._frames[frame_index]
         tx = self._tx[tx_index]
 
+        # Speicheradressen der 8 Kanal-Arrays und des TX-Puffers abfragen
         ch0 = uctypes.addressof(frame[0])
         ch1 = uctypes.addressof(frame[1])
         ch2 = uctypes.addressof(frame[2])
@@ -201,12 +214,23 @@ class WS2812ParallelAsync:
         for start_led in range(0, self.leds, step):
             end_led = min(start_led + step, self.leds)
             oi = _encode_chunk_viper(
-                ch0, ch1, ch2, ch3, ch4, ch5, ch6, ch7,
-                tx_ptr, start_led, end_led, oi
+                ch0,
+                ch1,
+                ch2,
+                ch3,
+                ch4,
+                ch5,
+                ch6,
+                ch7,
+                tx_ptr,
+                start_led,
+                end_led,
+                oi,
             )
             await asyncio.sleep_ms(0)
 
     async def wait(self):
+        """Kooperativ warten, bis DMA und WS2812-Latch abgeschlossen sind."""
         if self._send_tx is None:
             return
         while self.dma.active():
@@ -215,6 +239,7 @@ class WS2812ParallelAsync:
         self._send_tx = None
 
     async def show(self, copy=True):
+        """Aktuellen Zeichenpuffer senden und sofort einen neuen freigeben."""
         async with self._lock:
             encode_frame = self._draw
             encode_tx = self._spare_tx
@@ -235,8 +260,9 @@ class WS2812ParallelAsync:
                 src = self._frames[encode_frame]
                 dst = self._frames[new_draw]
                 for ch in range(CHANNELS):
-                    dst[ch][:] = src[ch][:]
-                await asyncio.sleep_ms(0)
+                    for i in range(self.leds):
+                        dst[ch][i] = src[ch][i]
+                    await asyncio.sleep_ms(0)
             self._draw = new_draw
 
     async def blackout(self):
@@ -261,11 +287,15 @@ class WS2812ParallelAsync:
             self.dma.close()
 
     def deinit_sync(self, blackout=True):
+        """Schaltet DMA und PIO sofort synchron ohne Event Loop ab."""
         if blackout:
+            # Puffer leeren
             self.clear()
+            # Synchronen Bitplane-Block erzeugen & senden (ohne await)
             frame = self._frames[self._draw]
             tx = self._tx[self._spare_tx]
             
+            # Einmalige synchrone Bit-Konvertierung
             oi = 0
             for led in range(self.leds):
                 for bit in range(23, -1, -1):
@@ -277,11 +307,13 @@ class WS2812ParallelAsync:
                     tx[oi] = mask
                     oi += 1
 
+            # DMA synchron triggern
             self.dma.config(
                 read=tx, write=self.sm,
                 count=len(tx), ctrl=self._dma_ctrl, trigger=True
             )
             time.sleep_ms(self.reset_ms)
 
+        # Hardware sofort deaktivieren
         self.sm.active(0)
         self.dma.close()

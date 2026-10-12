@@ -302,7 +302,6 @@ def int32_to_rgb(val, little_endian=True):
     else:
         return b2, b1, b0  # MSB -> LSB
 
-
 def fill_array_with_color(array, color_index):
     """Füllt ein Array mit den RGB32-Werten aus dem Farbindex."""
     for i in range(len(array)):

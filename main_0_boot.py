@@ -123,15 +123,15 @@ def on_string_received(text):
 #------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# WS2812-Instanz erstellen (auf Pin 2-9, 175 LEDs pro Strip)
+# WS2812-Instanz erstellen (auf Pin 2-9, 178 LEDs pro Strip)
 #-----------------------------------------------------------------------------
 global leds
 leds = WS2812ParallelAsync(
-        leds=200,
+        leds=CONFIG["leds_per_stripe"],
         first_pin=2,
-        brightness=64,
+        brightness=CONFIG["leds_brightness"],
         sm_id=0,
-        yield_every=8,
+        yield_every=CONFIG["leds_per_stripe"],
         reset_us=300,
     )
 #-----------------------------------------------------------------------------
@@ -165,11 +165,13 @@ def new_input_action(action_input):
         if len(parts) == 4 and parts[2].isdigit():
             obj_value = int(parts[2])
             print(f"Objekt-Wert erkannt: {obj_value}")
+            asyncio.create_task(do_send_msg_bus(str(obj_value)))
         else:
             print(f"[INPUT-FEHLER] Ungültiges Format: {action_input}")
             return
     elif action_input == "do,all,def":
         print("[INPUT] Befehl 'do,all,def' erkannt. Setze alle Animationen auf Default.")
+        asyncio.create_task(do_send_msg_bus())
         func_all_def()
         return
     else:
@@ -219,32 +221,33 @@ def func_all_def():
             z = i + CONFIG["offset_obj"]
             #print(f"Objekt {z} -> auf Default setzen")
             do_stop_anim(z)
+#-----------------------------------------------------------------------------
+#--- Async Funktion zum Senden einer Testnachricht über den Bus ---
+#-----------------------------------------------------------------------------
+async def do_send_msg_bus(msg=None):
+    if msg is None:
+        msg = "00"
+    print(f"[TX] Sende Nachricht: '{msg}'")
+    await bus.send_text(msg)
 
 #------------------------------------------------------------------------------
-# --- Hintergrund-Task simulieren ---
+#--- Hintergrund-Task simulieren ---
 #------------------------------------------------------------------------------
 async def background_heartbeat():
     print("Starte Background Task...")
     # UART-Empfangstask im Hintergrund starten
     uart_dev.start()
-    blink_time = 0.5
+    blink_time = 500        # Blinkzeit in Millisekunden
     blink_state = False
-    counter = 1
     while True:
         #print("Hintergrund-Task: Status-LED blinken")
         hwdebug.write_output(blink_state)
         blink_state = not blink_state
         #uart_dev.send_line("Heartbeat -> " + str(counter))
         #----------------------------------------------------------------------
-        # Beispiel: Senden über Parallel-Bus !!!
-        msg = "do," + str(counter)
-        #print(msg)
-        await bus.send_text(msg)
+        #asyncio.create_task(do_send_msg_bus())
         #----------------------------------------------------------------------
-        counter = counter + 1
-        if counter > 99:
-            counter = 1
-        await asyncio.sleep(blink_time)
+        await asyncio.sleep_ms(blink_time)
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------

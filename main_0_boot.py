@@ -1,7 +1,7 @@
 ######################################################
 ### Main-Program                                   ###
 ### Projekt: BIZCIR-BW-01-Master                   ###
-### Version: 1.02          29.08.2026              ###
+### Version: 1.03          12.10.2026              ###
 ######################################################
 from machine import UART, Pin
 from libs.uart_async import AsyncUART
@@ -12,6 +12,9 @@ import uctypes
 import uasyncio as asyncio
 import json
 
+#------------------------------------------------------------------------------
+machine.freq(250_000_000)  # Verdoppelt die Rechenleistung der CPU
+#------------------------------------------------------------------------------
 
 global led_offset
 led_offset = 0

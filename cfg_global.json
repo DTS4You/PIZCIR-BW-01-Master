@@ -1,5 +1,5 @@
 {
-    "leds_per_stripe": 178,
+    "leds_per_stripe": 172,
     "leds_brightness": 255,
     "frame_time":   20,
     "blink_time":  500,

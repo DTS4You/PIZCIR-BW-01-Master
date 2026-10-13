@@ -87,9 +87,9 @@ class ParallelBus:
             self.pins_data[i].value((nibble >> i) & 1)
 
         strobe_pin.value(0)
-        await asyncio.sleep_ms(5)  # Impulsdauer
+        await asyncio.sleep_ms(16)  # Impulsdauer
         strobe_pin.value(1)
-        await asyncio.sleep_ms(8)  # Pause vor nächstem Nibble
+        await asyncio.sleep_ms(32)  # Pause vor nächstem Nibble
 
     async def send_text(self, text):
         """Sendet einen String inkl. '\\r' am Ende."""

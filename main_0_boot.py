@@ -131,7 +131,7 @@ leds = WS2812ParallelAsync(
         first_pin=2,
         brightness=CONFIG["leds_brightness"],
         sm_id=0,
-        yield_every=CONFIG["leds_per_stripe"],
+        yield_every=32,
         reset_us=300,
     )
 #-----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ async def background_heartbeat():
     print("Starte Background Task...")
     # UART-Empfangstask im Hintergrund starten
     uart_dev.start()
-    blink_time = 500        # Blinkzeit in Millisekunden
+    blink_time = 600        # Blinkzeit in Millisekunden
     blink_state = False
     while True:
         #print("Hintergrund-Task: Status-LED blinken")

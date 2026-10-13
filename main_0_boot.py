@@ -69,15 +69,15 @@ else:
 if CONFIG["load_modul_anim_obj"]:
     print("[INIT] -> Modul Animationsobjekte wird geladen...")
     global anim_obj
-    import libs.anim_obj_old as myanim
+    import libs.anim_obj as myanim
     color_file = "cfg_colors.json"
-    mycolor = myanim.load_or_create_colors(color_file)
+    color_index = myanim.load_or_create_colors(color_file)
     patterns_file   = "cfg_patterns.json"
     objects_file    = "cfg_anim_objects.json"
     # 1. Zuerst Patterns laden
     anim_pattern = myanim.load_or_create_patterns(patterns_file)
     # 2. Dann Animationsobjekte laden und mit den loaded Patterns verknüpfen
-    anim_obj = myanim.load_or_create_objects(objects_file, anim_pattern)
+    anim_obj = myanim.load_or_create_objects(objects_file, anim_pattern, color_index)
 else:
     print("[INIT] ## Modul Animationsobjekte wird nicht geladen ##")
 
@@ -245,7 +245,7 @@ async def background_heartbeat():
         blink_state = not blink_state
         #uart_dev.send_line("Heartbeat -> " + str(counter))
         #----------------------------------------------------------------------
-        #asyncio.create_task(do_send_msg_bus())
+        asyncio.create_task(do_send_msg_bus())
         #----------------------------------------------------------------------
         await asyncio.sleep_ms(blink_time)
 #------------------------------------------------------------------------------

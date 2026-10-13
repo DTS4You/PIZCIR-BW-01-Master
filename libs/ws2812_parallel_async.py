@@ -1,9 +1,9 @@
 # libs/ws2812_parallel_async.py
 from array import array
-from machine import Pin
-import rp2
-import uasyncio as asyncio
-import uctypes
+from machine import Pin         # type: ignore
+import rp2                      # type: ignore
+import uasyncio as asyncio      # type: ignore
+import uctypes                  # type: ignore
 import time
 
 CHANNELS = 8

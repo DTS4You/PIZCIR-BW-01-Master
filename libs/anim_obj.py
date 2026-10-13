@@ -104,9 +104,9 @@ class COLOR_OBJ:
         if little_endian:
             # LSB zuerst
             self.rgb32 = (
-                self.red
-                | (self.green << 8)
-                | (self.blue << 16)
+                self.blue
+                | (self.red << 8)
+                | (self.green << 16)
                 | (self.dummy << 24)
             )
         else:

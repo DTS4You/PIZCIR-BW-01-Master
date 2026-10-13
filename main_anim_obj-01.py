@@ -40,9 +40,9 @@ async def main_loop():
 
 def anim_setup():
 
-    debug_anim  = True
+    debug_anim  = False
     debug_color = True
-    debug_fill  = False
+    debug_fill  = True
 
     print("--- Start Color Test ---")
     color_file = "cfg_colors.json"
@@ -104,7 +104,7 @@ def anim_setup():
     #--------------------------------------------------------------------------
     if debug_fill:
         print("--- Start Fill Array Test ---")
-        test_array = [0, 1, 2, 3, 2, 1, 0]
+        test_array = [0, 1, 13, 14, 15]
         myanim.fill_array_with_color(test_array, color_index)
         print("Testarray gefüllt:", test_array)
         print("Array als Hex32 Werte : ", end="")

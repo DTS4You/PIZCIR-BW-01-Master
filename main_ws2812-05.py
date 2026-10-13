@@ -6,6 +6,7 @@ from libs.ws2812_parallel_async import WS2812ParallelAsync
 import machine
 machine.freq(250_000_000)  # Verdoppelt die Rechenleistung der CPU
 
+# color_val = 0xGGRRBB
 
 LEDS = 178
 
@@ -16,7 +17,7 @@ def update_buffers_fast(buffers: object, leds: int, pos: int):
         buf_ptr = ptr32(buffers[ch])
         
         # Farbe berechnen
-        color_val = 0x550000
+        color_val = 0x000055
         
         for i in range(leds):
             idx = (pos + i)

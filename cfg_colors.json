@@ -12,7 +12,7 @@
     { "id": 10, "r":   0, "g": 150, "b":   0, "brightness": 1 },
     { "id": 11, "r":   0, "g":   0, "b":  20, "brightness": 1 },
     { "id": 12, "r":   0, "g":   0, "b":  50, "brightness": 1 },
-    { "id": 13, "r":   0, "g":   0, "b": 150, "brightness": 1 },
-    { "id": 14, "r":  20, "g":   0, "b":   0, "brightness": 1 },
-    { "id": 15, "r":  70, "g":   0, "b":   0, "brightness": 1 }
+    { "id": 13, "r": 128, "g":   0, "b":   0, "brightness": 1 },
+    { "id": 14, "r":   0, "g": 128, "b":   0, "brightness": 1 },
+    { "id": 15, "r":   0, "g":   0, "b": 128, "brightness": 1 }
 ]

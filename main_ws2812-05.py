@@ -17,7 +17,7 @@ def update_buffers_fast(buffers: object, leds: int, pos: int):
         buf_ptr = ptr32(buffers[ch])
         
         # Farbe berechnen
-        color_val = 0x000055
+        color_val = 0x008000
         
         for i in range(leds):
             idx = (pos + i)
@@ -49,7 +49,7 @@ async def animate_arrays(leds):
 
 
 async def main():
-    leds = WS2812ParallelAsync(leds=LEDS, first_pin=2, brightness=255, yield_every=LEDS, reset_us=300)
+    leds = WS2812ParallelAsync(leds=LEDS, first_pin=2, brightness=255, yield_every=32, reset_us=300)
     try:
         await animate_arrays(leds)
     finally:

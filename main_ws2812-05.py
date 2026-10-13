@@ -1,20 +1,20 @@
 # main.py
 from array import array
-import uasyncio as asyncio
+import uasyncio as asyncio                                      # type: ignore
 from libs.ws2812_parallel_async import WS2812ParallelAsync
 
-import machine
+import machine                                                  # type: ignore
 machine.freq(250_000_000)  # Verdoppelt die Rechenleistung der CPU
 
 # color_val = 0xGGRRBB
 
 LEDS = 178
 
-@micropython.viper
+@micropython.viper                                              # type: ignore
 def update_buffers_fast(buffers: object, leds: int, pos: int):
     # buffers ist eine Liste von Arrays
     for ch in range(8):
-        buf_ptr = ptr32(buffers[ch])
+        buf_ptr = ptr32(buffers[ch])                            # type: ignore
         
         # Farbe berechnen
         color_val = 0x008000

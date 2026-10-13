@@ -3,7 +3,7 @@
 ### Version : 0.99
 ###############################################################################
 import time
-import uasyncio as asyncio             # MicroPython RP2040
+import uasyncio as asyncio             # type: ignore # MicroPython RP2040
 #import asyncio                        # Python 3.x
 
 import libs.anim_obj as myanim

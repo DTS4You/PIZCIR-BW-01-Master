@@ -69,7 +69,7 @@ else:
 if CONFIG["load_modul_anim_obj"]:
     print("[INIT] -> Modul Animationsobjekte wird geladen...")
     global anim_obj
-    import libs.anim_obj as myanim
+    import libs.anim_obj_old as myanim
     color_file = "cfg_colors.json"
     mycolor = myanim.load_or_create_colors(color_file)
     patterns_file   = "cfg_patterns.json"

@@ -1,3 +1,8 @@
+###############################################################################
+### Modul   : Animationsobjekte
+### Version : 0.99
+### Datum   : 2026-10-12
+################################################################################
 import json
 import os
 import time
@@ -13,19 +18,30 @@ class ANIM_PATTERN:
 # Klasse für Animationsobjekte
 #-----------------------------------------------------------------------------
 class ANIM_OBJ:
-    def __init__(self, stripe, start, length, pattern, default_color_index=0, direction=True):
+    def __init__(self, id, stripe, start, length, pregap, pattern, color_index, color_def=1, color_off=0, direction=True, toggle_en=False):
+        self.id             = id
         self.stripe         = stripe                        # Stripe Nummmer zählt von 1 bis N -> muss zum Board mit 0 starten
         self.start          = start                         # Startposition im Stripe Start bei 1
-        self.length         = length
-        self.color_def      = default_color_index
-        self.pattern        = pattern
-        self.position       = 0
+        self.length         = length                        # Länge des Objektes    
+        self.color_def      = color_def                     # Color Index für "Vorgabe"
+        self.color_off      = color_off                     # Color Index für "Aus"
+        self.pattern        = pattern                       # Animations Muster als Array aus Index-Farbwerten
+        self.color_index    = color_index                   # Color Index Objekt
+        self.position       = pregap                        # 0 oder Offset als Positionsvorgabe -> negative Werte verzögern den Start                              
         self.direction      = direction                     # True = rechts -> links / False = links -> rechts
+        self.toggle_en      = toggle_en                     # Toggle der Richtung nach jedem Durchlauf
+        self.run_state      = False                         # True = Animation läuft / False = Animation gestoppt
         self.modulo         = 0
         self.modified       = False
-        self.led_array      = self.pattern.led_pattern + [self.color_def] * self.length
         self.arr_length     = self.length + self.pattern.length
+        self.led_array      = self.pattern.led_pattern + [self.color_def] * self.length
+        self.color_fill()
         self.act_array      = self.led_array
+
+    def color_fill(self):
+        for i, wert in enumerate(self.led_array):
+            #print(self.id, i , wert, self.color_index[wert].rgb32)
+            self.led_array[i] = self.color_index[wert].rgb32
 
     def get_modulo(self):
         self.modulo = self.position % len(self.led_array)
@@ -34,31 +50,48 @@ class ANIM_OBJ:
     def get_led_array(self):
         return self.led_array
 
-    def do_anim_step(self):
-        arr_len = len(self.led_array)
-        n = self.position % arr_len
-
-        # Rotation ausführen
-        if self.direction:
-            # Rechts-Rotation
-            self.act_array = self.led_array[-n:] + self.led_array[:-n]
+    def set_anim_state(self, state=False):
+        if state:
+            self.run_state = True
         else:
-            # Links-Rotation
-            self.act_array = self.led_array[n:] + self.led_array[:n]
+            self.run_state = False
+            self.position  = 0
 
-        # Position hochzählen/zurücksetzen
-        if self.position >= self.arr_length:
-            self.position = 0
+    def do_anim_update(self):
+        if self.run_state:
+            arr_len = len(self.led_array)
+            n = self.position % arr_len
+
+            # Rotation ausführen
+            if self.direction:
+                # Rechts-Rotation
+                self.act_array = self.led_array[-n:] + self.led_array[:-n]
+            else:
+                # Links-Rotation
+                self.act_array = self.led_array[n:] + self.led_array[:n]
+
+            if self.position < 0:
+                # Wenn Position kleiner 0 dann nur Array-Default zurückgeben und Position hochzählen
+                self.position += 1
+                return [self.color_index[self.color_def].rgb32] * self.length       # Array mit RGB32 Wert aus Color-Index[Default] zurückgeben
+            else:
+                # Position hochzählen/zurücksetzen bei direction / toggle_en -> Richtung immer wieder umdrehen am Ende
+                if self.position >= self.arr_length:
+                    self.position = 0
+                    if self.toggle_en:
+                        self.direction = not self.direction
+                else:
+                    self.position += 1
+
+            return self.act_array[self.pattern.length :]
         else:
-            self.position += 1
-
-        return self.act_array[self.pattern.length :]
+            return [self.color_index[self.color_off].rgb32] * self.length           # Array mit RGB32 Wert aus Color-Index[Off] zurückgeben
 #------------------------------------------------------------------------------
 # Klasse für Farbobjekte
 #------------------------------------------------------------------------------
 class COLOR_OBJ:
-    def __init__(self, index, red, green, blue, brightness=1):
-        self.index      = index
+    def __init__(self, id, red, green, blue, brightness=1):
+        self.id         = id
         self.red        = red
         self.green      = green
         self.blue       = blue
@@ -90,21 +123,21 @@ class COLOR_OBJ:
 # Standarddaten für die Animationsobjekte
 #-----------------------------------------------------------------------------
 DEFAULT_OBJECTS = [
-    {"stripe":  3, "start":  1, "length": 10, "pattern_index": 1, "default_color_index": 1, "direction": True},
-    {"stripe":  4, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe":  5, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe":  6, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe":  7, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe":  8, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 10, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 11, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 12, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 13, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 13, "start": 20, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 14, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 14, "start": 20, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 15, "start":  1, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True},
-    {"stripe": 16, "start": 20, "length": 10, "pattern_index": 0, "default_color_index": 1, "direction": True}
+    {"id":  1, "stripe":  3, "start":  1, "length": 10, "pregap": -15, "pattern": 1, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  2, "stripe":  4, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  3, "stripe":  5, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  4, "stripe":  6, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  5, "stripe":  7, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  6, "stripe":  8, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  7, "stripe": 10, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  8, "stripe": 11, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id":  9, "stripe": 12, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 10, "stripe": 13, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 11, "stripe": 13, "start": 20, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 12, "stripe": 14, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 13, "stripe": 14, "start": 20, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 14, "stripe": 15, "start":  1, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False},
+    {"id": 15, "stripe": 16, "start": 20, "length": 10, "pregap":   0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": True, "toggle_en": False}
 ]
 #-----------------------------------------------------------------------------
 # Standarddaten für die Patterns
@@ -118,22 +151,22 @@ DEFAULT_PATTERNS = [
 # Standarddaten für die Farben
 #-----------------------------------------------------------------------------
 DEFAULT_COLOR_DATA = [
-    {"index":  0, "r":   0, "g":   0, "b":   0, "brightness": 1},
-    {"index":  1, "r":   0, "g":   0, "b":   3, "brightness": 1},
-    {"index":  2, "r": 100, "g": 100, "b": 100, "brightness": 1},
-    {"index":  3, "r":  50, "g":  50, "b":  50, "brightness": 1},
-    {"index":  4, "r":   0, "g": 200, "b":   0, "brightness": 1},
-    {"index":  5, "r":   0, "g":  10, "b":   0, "brightness": 1},
-    {"index":  6, "r":  10, "g":  10, "b":  10, "brightness": 1},
-    {"index":  7, "r":  10, "g":  10, "b":  10, "brightness": 1},
-    {"index":  8, "r":   0, "g":  20, "b":   0, "brightness": 1},
-    {"index":  9, "r":   0, "g":  50, "b":   0, "brightness": 1},
-    {"index": 10, "r":   0, "g": 150, "b":   0, "brightness": 1},
-    {"index": 11, "r":   0, "g":   0, "b":  20, "brightness": 1},
-    {"index": 12, "r":   0, "g":   0, "b":  50, "brightness": 1},
-    {"index": 13, "r":   0, "g":   0, "b": 150, "brightness": 1},
-    {"index": 14, "r":  20, "g":   0, "b":   0, "brightness": 1},
-    {"index": 15, "r":  70, "g":   0, "b":   0, "brightness": 1},
+    {"id":  0, "r":   0, "g":   0, "b":   0, "brightness": 1},
+    {"id":  1, "r":   0, "g":   0, "b":   3, "brightness": 1},
+    {"id":  2, "r": 100, "g": 100, "b": 100, "brightness": 1},
+    {"id":  3, "r":  50, "g":  50, "b":  50, "brightness": 1},
+    {"id":  4, "r":   0, "g": 200, "b":   0, "brightness": 1},
+    {"id":  5, "r":   0, "g":  10, "b":   0, "brightness": 1},
+    {"id":  6, "r":  10, "g":  10, "b":  10, "brightness": 1},
+    {"id":  7, "r":  10, "g":  10, "b":  10, "brightness": 1},
+    {"id":  8, "r":   0, "g":  20, "b":   0, "brightness": 1},
+    {"id":  9, "r":   0, "g":  50, "b":   0, "brightness": 1},
+    {"id": 10, "r":   0, "g": 150, "b":   0, "brightness": 1},
+    {"id": 11, "r":   0, "g":   0, "b":  20, "brightness": 1},
+    {"id": 12, "r":   0, "g":   0, "b":  50, "brightness": 1},
+    {"id": 13, "r":   0, "g":   0, "b": 150, "brightness": 1},
+    {"id": 14, "r":  20, "g":   0, "b":   0, "brightness": 1},
+    {"id": 15, "r":  70, "g":   0, "b":   0, "brightness": 1},
 ]
 
 def load_or_create_patterns(filepath):
@@ -166,14 +199,14 @@ def save_objects_to_json(filepath, objects_data):
     for i, item in enumerate(objects_data):
         comma = "," if i < count - 1 else ""
         lines.append(
-            f'    {{ "stripe": {item["stripe"]:2d}, "start": {item["start"]:2d}, "length": {item["length"]:2d}, "pattern_index": {item["pattern_index"]}, "default_color_index": {item["default_color_index"]}, "direction": {str(item["direction"]).lower()} }}{comma}'
+            f'    {{ "id": {item["id"]:2d},"stripe": {item["stripe"]:2d}, "start": {item["start"]:2d}, "length": {item["length"]:2d}, "pregap": {item["pregap"]:4d}, "pattern": {item["pattern"]}, "color_def": {item["color_def"]}, "color_off": {item["color_off"]}, "direction": {str(item["direction"]).lower()}, "toggle_en": {str(item["toggle_en"]).lower()} }}{comma}'
         )
     lines.append("]")
 
     with open(filepath, "w") as file:
         file.write("\n".join(lines))
 
-def load_or_create_objects(filepath, anim_patterns):
+def load_or_create_objects(filepath, anim_patterns, color_index):
     """Lädt Objekt-Konfigurationen aus JSON oder erstellt Standarddatei."""
     is_empty_or_missing = True
     try:
@@ -195,14 +228,19 @@ def load_or_create_objects(filepath, anim_patterns):
 
     anim_objects = []
     for item in data:
-        pat_idx = item["pattern_index"]
+        pat_idx = item["pattern"]
         obj = ANIM_OBJ(
+            id=item["id"],
             stripe=item["stripe"],
             start=item["start"],
             length=item["length"],
+            pregap=item["pregap"],
             pattern=anim_patterns[pat_idx],
-            default_color_index=item["default_color_index"],
-            direction=item["direction"]
+            color_index=color_index,
+            color_def=item["color_def"],
+            color_off=item["color_off"],
+            direction=item["direction"],
+            toggle_en=item["toggle_en"]
         )
         anim_objects.append(obj)
 
@@ -214,7 +252,7 @@ def save_colors_to_json(filepath, color_index):
     for i, obj in enumerate(color_index):
         comma = "," if i < len(color_index) - 1 else ""
         line = (
-            f'    {{ "index": {obj.index:2d}, '
+            f'    {{ "id": {obj.id:2d}, '
             f'"r": {obj.red:3d}, '
             f'"g": {obj.green:3d}, '
             f'"b": {obj.blue:3d}, '
@@ -247,7 +285,7 @@ def load_or_create_colors(filepath):
         # Erstelle temporäre Liste aus Obj für formatierte Speicherung
         default_objs = [
             COLOR_OBJ(
-                item["index"],
+                item["id"],
                 item["r"],
                 item["g"],
                 item["b"],
@@ -271,7 +309,7 @@ def load_or_create_colors(filepath):
     color_index = []
     for item in data:
         obj = COLOR_OBJ(
-            index=item["index"],
+            id=item["id"],
             red=item["r"],
             green=item["g"],
             blue=item["b"],
@@ -307,13 +345,24 @@ def fill_array_with_color(array, color_index):
     for i in range(len(array)):
         array[i] = color_index[array[i]].rgb32
     return array
+
+#-----------------------------------------------------------------------------
+def format_with_sign(wert, width=4):
+    # Vorzeichen und Betrag trennen
+    if wert >= 0:
+        # Bei positiv: '+' erzwingen und mit Nullen auffüllen (Breite minus 1 für das Vorzeichen)
+        return f"+{wert:0{width-1}d}"
+    else:
+        # Bei negativ: '-' setzen und den Betrag mit Nullen auffüllen
+        return f"-{abs(wert):0{width-1}d}"
+
 #------------------------------------------------------------------------------
 # Main-Funktion für Modultests
 #------------------------------------------------------------------------------
 def main():
 
     debug_anim  = True
-    debug_color = False
+    debug_color = True
     debug_fill  = False
 
     print("--- Start Color Test ---")
@@ -323,39 +372,65 @@ def main():
     if debug_color:
         print("\n--- Test COLOR_OBJ ---")
         for obj in color_index:
-            print(f"Index: {obj.index:2d}, R: {obj.red:3d}, G: {obj.green:3d}, B: {obj.blue:3d}, Brightness: {obj.brightness}, RGB32: {hex(obj.rgb32)}")
+            print(f"Index: {obj.id:2d}, R: {obj.red:3d}, G: {obj.green:3d}, B: {obj.blue:3d}, Brightness: {obj.brightness}, RGB32: {hex(obj.rgb32)}")
         print("\n--- Test int32_to_4bytes ---")
         for obj in color_index:
             b0, b1, b2, b3 = int32_to_4bytes(obj.rgb32, little_endian=True)
-            print(f"Index: {obj.index:2d}, RGB32: {hex(obj.rgb32)}, Bytes: [{b0:3d}, {b1:3d}, {b2:3d}, {b3:3d}]")
+            print(f"Index: {obj.id:2d}, RGB32: {hex(obj.rgb32)}, Bytes: [{b0:3d}, {b1:3d}, {b2:3d}, {b3:3d}]")
         print("Farbenindex 2 ist Farbe: ", color_index[2].rgb32)
     print("--- Ende Color Test ---")
 
+    #--------------------------------------------------------------------------
     print("--- Start Animation Test ---")
-    patterns_file = "cfg_patterns.json"
-    objects_file = "cfg_anim_objects.json"
+    print("-> Config-Dateien setzen")
+    patterns_file = "cfg_patterns.json"                         # Pattern-Datei, die eingelsen wird.
+    objects_file = "cfg_anim_objects.json"                      # Objekt-Datei, die eingelesen wird.
     anim_pattern = load_or_create_patterns(patterns_file)
-    anim_obj = load_or_create_objects(objects_file, anim_pattern)
-    print("Objekte erzeugt")
-
+    print("--> Patterns erzeugt")
+    anim_obj = load_or_create_objects(objects_file, anim_pattern, color_index)
+    print("--> Objekte erzeugt")
+    #--------------------------------------------------------------------------
     print("Anzahl der LED-Objekte: ", len(anim_obj))
 
-    if debug_anim:
-        print("Pattern 0 Länge:", anim_obj[0].pattern.length)
-        print("Array Länge Gesamt:", anim_obj[0].arr_length)
+    anim_number     = 0
+    anim_steps      = 50
+    anim_delay      = 0.4
+    anim_test_start = 5
+    anim_test_stop  = 40
 
-        for _ in range(20):
-            print(
-                f"Objekt Pos: {anim_obj[0].position:02d} | Array: {anim_obj[0].do_anim_step()}"
-            )
-            time.sleep(0.2)
+    anim_obj[anim_number].toggle_dir = False
+
+    #--------------------------------------------------------------------------
+    if debug_anim:
+        print("Pattern Länge:", anim_obj[anim_number].pattern.length)
+        print("Array Länge Gesamt:", anim_obj[anim_number].arr_length)
+        print("Board Port:", anim_obj[anim_number].stripe)
+        print("Startposition:", anim_obj[anim_number].start)
+        print("Objekt Länge:", anim_obj[anim_number].length)
+        print("Toggle Enabled:", anim_obj[anim_number].toggle_en)
+
+        for anim_step in range(anim_steps):
+            if anim_step == anim_test_start:
+                anim_obj[anim_number].set_anim_state(True)
+            if anim_step == anim_test_stop:
+                anim_obj[anim_number].set_anim_state(False)
+            
+            #print(f"State: {anim_obj[anim_number].run_state:1d} | Pos: {anim_obj[anim_number].position:02d} | Array: {anim_obj[anim_number].do_anim_update()}")
+            print(f"Step: {anim_step:2d} | State: {anim_obj[anim_number].run_state:1d} | Pos: {format_with_sign(anim_obj[anim_number].position, width=3)} | Array: ", end="")
+            print(", ".join([f"0x{x:06X}" for x in anim_obj[anim_number].do_anim_update()]))
+            time.sleep(anim_delay)
     print("--- Ende Animation Test ---")
 
+#--------------------------------------------------------------------------
     if debug_fill:
         print("--- Start Fill Array Test ---")
         test_array = [0, 1, 2, 3, 2, 1, 0]
         fill_array_with_color(test_array, color_index)
         print("Testarray gefüllt:", test_array)
+        print("Array als Hex32 Werte : ", end="")
+        for i in range(len(test_array)):
+            print(f"{test_array[i]:06X}", end=" ")
+        print()
         print("--- Ende Fill Array Test ---")
 
 

@@ -1,6 +1,9 @@
-import asyncio
+###############################################################################
+### XIO-Bus (Parallelbus) für Raspberry Pi Pico
+###############################################################################
+import uasyncio as asyncio      # type: ignore
 import time
-from machine import Pin
+from machine import Pin         # type: ignore
 
 
 class ParallelBus:

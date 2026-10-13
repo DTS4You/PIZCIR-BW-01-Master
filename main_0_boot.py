@@ -3,17 +3,17 @@
 ### Projekt: BIZCIR-BW-01-Master                   ###
 ### Version: 1.03          12.10.2026              ###
 ######################################################
-from machine import UART, Pin
+from machine import UART, Pin   # type: ignore
 from libs.uart_async import AsyncUART
 from libs.xio_bus import ParallelBus
 from libs.ws2812_parallel_async import WS2812ParallelAsync
 import time, sys
-import uctypes
-import uasyncio as asyncio
+import uctypes                  # type: ignore
+import uasyncio as asyncio      # type: ignore
 import json
 
-#------------------------------------------------------------------------------
-machine.freq(250_000_000)  # Verdoppelt die Rechenleistung der CPU
+#---- Verdoppelt die Rechenleistung der CPU
+machine.freq(250_000_000)       # type: ignore
 #------------------------------------------------------------------------------
 
 global led_offset

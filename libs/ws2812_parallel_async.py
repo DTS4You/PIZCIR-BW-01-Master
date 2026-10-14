@@ -1,4 +1,8 @@
-# libs/ws2812_parallel_async.py
+###############################################################################
+### Modul   : WS2812 PIO DMA Async
+### Version : 1.00
+### Datum   : 2026-10-14
+################################################################################
 from array import array
 from machine import Pin         # type: ignore
 import rp2                      # type: ignore

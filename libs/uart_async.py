@@ -1,5 +1,11 @@
-import uasyncio as asyncio
-from machine import UART, Pin
+###############################################################################
+### Modul   : UARRT Async
+### Version : 1.00
+### Datum   : 2026-10-14
+################################################################################
+
+import uasyncio as asyncio              # type: ignore
+from machine import UART, Pin           # type: ignore
 
 class AsyncUART:
     def __init__(self, uart_id=0, baudrate=115200, tx_pin=0, rx_pin=1, rxbuf=256, on_receive=None):

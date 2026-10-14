@@ -1,6 +1,9 @@
 ###############################################################################
-### Programm    : Funktions-Codes in Array umwandeln (MicroPython RP2040)
-###############################################################################
+### Modul   : Funktions-Codes in Array umwandeln (MicroPython RP2040)
+### Version : 1.00
+### Datum   : 2026-10-14
+################################################################################
+
 import json
 
 class OBJECT:

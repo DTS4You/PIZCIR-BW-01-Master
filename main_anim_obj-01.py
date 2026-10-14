@@ -1,10 +1,11 @@
 ###############################################################################
-### Name    : main_anim_obj-01
-### Version : 0.99
-###############################################################################
+### Name    : main_anim_obj-01.py
+### Version : 1.00
+### Datum   : 2026-10-14
+################################################################################
 import time
-import uasyncio as asyncio             # type: ignore # MicroPython RP2040
-#import asyncio                        # Python 3.x
+#import uasyncio as asyncio             # type: ignore # MicroPython RP2040
+import asyncio                        # Python 3.x
 
 import libs.anim_obj as myanim
 

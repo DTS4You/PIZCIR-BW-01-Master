@@ -1,4 +1,4 @@
-# main.py
+# main_ws2812-05.py
 from array import array
 import uasyncio as asyncio                                      # type: ignore
 from libs.ws2812_parallel_async import WS2812ParallelAsync

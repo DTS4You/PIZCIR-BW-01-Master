@@ -38,6 +38,7 @@ class ANIM_OBJ:
         self.led_array      = self.pattern.led_pattern + [self.color_def] * self.length
         self.color_fill()
         self.act_array      = self.led_array
+        self.led_output     = [self.color_index[self.color_off].rgb32] * self.length
 
     def color_fill(self):
         for i, wert in enumerate(self.led_array):
@@ -50,6 +51,9 @@ class ANIM_OBJ:
 
     def get_led_array(self):
         return self.led_array
+
+    def get_led_output(self):
+        return self.led_output
 
     def set_anim_state(self, state=False):
         if state:
@@ -74,7 +78,8 @@ class ANIM_OBJ:
             if self.position < 0:
                 # Wenn Position kleiner 0 dann nur Array-Default zurückgeben und Position hochzählen
                 self.position += 1
-                return [self.color_index[self.color_def].rgb32] * self.length       # Array mit RGB32 Wert aus Color-Index[Default] zurückgeben
+                self.led_output = [self.color_index[self.color_def].rgb32] * self.length       # Array mit RGB32 Wert aus Color-Index[Default] zurückgeben
+                return self.led_output
             else:
                 # Position hochzählen/zurücksetzen bei direction / toggle_en -> Richtung immer wieder umdrehen am Ende
                 if self.position >= self.arr_length:
@@ -84,9 +89,11 @@ class ANIM_OBJ:
                 else:
                     self.position += 1
 
-            return self.act_array[self.pattern.length :]
+            self.led_output = self.act_array[self.pattern.length :]
+            return self.led_output
         else:
-            return [self.color_index[self.color_off].rgb32] * self.length           # Array mit RGB32 Wert aus Color-Index[Off] zurückgeben
+            self.led_output = [self.color_index[self.color_off].rgb32] * self.length           # Array mit RGB32 Wert aus Color-Index[Off] zurückgeben
+            return self.led_output
 #------------------------------------------------------------------------------
 # Klasse für Farbobjekte
 #------------------------------------------------------------------------------
@@ -438,8 +445,18 @@ def main():
 #--------------------------------------------------------------------------
     if debug_obj:
         print("--- Start Object Test ---")
-        for i in range(len(anim_obj)):
-            print(f"Obj: {i:02d} | Stripe: {anim_obj[i].stripe:02d}")
+        object_array =[0, 1, 2, 3, 4, 5, 6, 7]
+        for i in object_array:
+            print(f"Obj: {i:02d} | Stripe: {anim_obj[i].stripe:02d} | Led_Output: {anim_obj[i].get_led_output()}")
+
+        anim_obj[0].set_anim_state(True)
+
+        anim_number = 0
+
+        for anim_step in range(anim_steps):
+            print(f"Obj: {anim_number:02d} | Stripe: {anim_obj[anim_number].stripe:02d} | Pos: {format_with_sign(anim_obj[anim_number].position, width=3)} | Array: ", end="")
+            print(", ".join([f"0x{x:06X}" for x in anim_obj[anim_number].get_led_output()]))
+            anim_obj[anim_number].do_anim_update()
         print("--- Ende Object Test ---")
 
 #==============================================================================

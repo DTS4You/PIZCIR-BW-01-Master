@@ -162,6 +162,14 @@ class WS2812ParallelAsync:
             return ((v >> 8) & 255, (v >> 16) & 255, v & 255)
         frame[channel][index] = self._grb(rgb)
 
+    def pixel_hex(self, channel, index, rgb32):
+        if not 0 <= channel < CHANNELS:
+            raise IndexError("channel muss 0..7 sein")
+        if not 0 <= index < self.leds:
+            raise IndexError("LED-Index ungueltig")
+        frame = self._frames[self._draw]
+        frame[channel][index] = rgb32
+
     def fill(self, channel, rgb):
         if not 0 <= channel < CHANNELS:
             raise IndexError("channel muss 0..7 sein")

@@ -214,11 +214,11 @@ def new_input_action(action_input):
 def do_start_anim(value):
     global anim_obj
     print(f"[DO] START Animation für Objekt {value}")
-    anim_obj[value - CONFIG["offset_obj"]].modified = True
+    anim_obj[value - CONFIG["offset_obj"]].set_anim_state(True)
 
 def do_stop_anim(value):
     print(f"[DO] STOP  Animation für Objekt {value}")
-    anim_obj[value - CONFIG["offset_obj"]].modified = False
+    anim_obj[value - CONFIG["offset_obj"]].set_anim_state(False)
 
 def func_all_def():
     print("[DO] Alle Animationen auf Default setzen.")
@@ -264,15 +264,13 @@ async def main_loop():
     frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
     offset = 0
     print("Starte WS2812-Berechnung...")
+    print("Array:", anim_obj[0].do_anim_update())
     while True:
         leds.clear()
         for s in range(8):
-            if anim_obj[s].modified:
-                for i in range(2):
-                    leds.pixel(s, i + offset, (0, 150, 150))
-            else:
-                for i in range(2):
-                    leds.pixel(s, i + offset, (0, 0, 10))
+            led_array = anim_obj[s].do_anim_update()
+            for led_index, led_color in enumerate(led_array):
+                leds.pixel_hex(s, led_index, led_color)
         await leds.show(copy=False)
         if offset < 150:
             offset += 1

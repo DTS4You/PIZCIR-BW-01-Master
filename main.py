@@ -272,11 +272,12 @@ async def main_loop():
     print("Starte WS2812-Berechnung...")
     while True:
         leds.clear()
-        for s in range(8):
+        for s in CONFIG["stripe_list"]:
             anim_obj[s].do_anim_update()
             led_array = anim_obj[s].do_anim_update()
             for led_index, led_color in enumerate(led_array):
-                leds.pixel_hex(s, led_index, led_color)
+                pos = anim_obj[s].start + led_index - 1
+                leds.pixel_hex(anim_obj[s].stripe, pos, led_color)
         await leds.show(copy=False)
         await asyncio.sleep_ms(frame_time)
 

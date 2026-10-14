@@ -93,6 +93,7 @@ else:
 print("[Board-Modus]:", CONFIG["board_modus"])
 print("[LEDs per Stripe]:", CONFIG["leds_per_stripe"])
 print("[LEDs Helligkeit]:", CONFIG["leds_brightness"])
+print("[Anzahl der Objekte]:", len(anim_obj))
 print("[INIT] -> Alle Module geladen. Starte Hauptprogramm...")
 
 

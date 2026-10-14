@@ -365,6 +365,7 @@ def main():
     debug_anim  = False
     debug_color = True
     debug_fill  = True
+    debug_obj   = True
 
     print("--- Start Color Test ---")
     color_file = "cfg_colors.json"
@@ -434,6 +435,12 @@ def main():
         print()
         print("--- Ende Fill Array Test ---")
 
+#--------------------------------------------------------------------------
+    if debug_obj:
+        print("--- Start Object Test ---")
+        for i in range(len(anim_obj)):
+            print(f"Obj: {i:02d} | Stripe: {anim_obj[i].stripe:02d}")
+        print("--- Ende Object Test ---")
 
 #==============================================================================
 if __name__ == "__main__":

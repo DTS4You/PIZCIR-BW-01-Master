@@ -362,9 +362,9 @@ def format_with_sign(wert, width=4):
 #------------------------------------------------------------------------------
 def main():
 
-    debug_anim  = True
+    debug_anim  = False
     debug_color = True
-    debug_fill  = False
+    debug_fill  = True
 
     print("--- Start Color Test ---")
     color_file = "cfg_colors.json"

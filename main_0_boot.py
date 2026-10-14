@@ -16,6 +16,8 @@ import json
 machine.freq(250_000_000)       # type: ignore      # Anpassung CPU Clock
 #------------------------------------------------------------------------------
 
+CONFIG_FILE = "cfg_global_master.json"
+
 global led_offset
 led_offset = 0
 
@@ -23,7 +25,7 @@ led_offset = 0
 # Globales Dictionary für die Konfigurationswerte
 CONFIG = {}
 
-def load_global_config(filepath="config.json"):
+def load_global_config(filepath=CONFIG_FILE):
 
     global CONFIG
     
@@ -35,6 +37,7 @@ def load_global_config(filepath="config.json"):
         "blink_time": 500,
         "debug_time": 1000,
         "board_modus": "Master",
+        "stripe_list": [0, 1, 2, 3, 4, 5, 6, 7],
         "load_modul_hwdebug": True,
         "load_modul_anim_obj": True,
         "load_modul_fcode": True,
@@ -55,7 +58,7 @@ def load_global_config(filepath="config.json"):
 #==============================================================================
 
 # --- 1. KONFIGURATION BEIM START LADEN ---
-load_global_config("cfg_global.json")
+load_global_config(CONFIG_FILE)
 
 # --- 2. OPTIONALE MODUL-STEUERUNG ---
 if CONFIG["load_modul_hwdebug"]:
@@ -91,6 +94,7 @@ else:
     print("[INIT] ## Modul F-Code wird nicht geladen ##")
 
 print("[Board-Modus]:", CONFIG["board_modus"])
+print("[Stripe-Liste]:", CONFIG["stripe_list"])
 print("[LEDs per Stripe]:", CONFIG["leds_per_stripe"])
 print("[LEDs Helligkeit]:", CONFIG["leds_brightness"])
 print("[Anzahl der Objekte]:", len(anim_obj))

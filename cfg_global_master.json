@@ -5,6 +5,7 @@
     "blink_time":  500,
     "debug_time": 1000,
     "board_modus": "Master",
+    "stripe_list": [0, 1, 2, 3, 4, 5, 6, 7],
     "load_modul_hwdebug": true,
     "load_modul_anim_obj": true,
     "load_modul_fcode": true,

@@ -1,7 +1,7 @@
 ######################################################
 ### Main-Program                                   ###
 ### Projekt: BIZCIR-BW-01-Master                   ###
-### Version: 1.03          12.10.2026              ###
+### Version: 1.04          14.10.2026              ###
 ######################################################
 from machine import UART, Pin   # type: ignore
 from libs.uart_async import AsyncUART
@@ -12,9 +12,12 @@ import uctypes                  # type: ignore
 import uasyncio as asyncio      # type: ignore
 import json
 
-#---- Verdoppelt die Rechenleistung der CPU
-machine.freq(250_000_000)       # type: ignore
 #------------------------------------------------------------------------------
+machine.freq(250_000_000)       # type: ignore      # Anpassung CPU Clock
+#------------------------------------------------------------------------------
+# Master/Slave-Konfiguration setzen
+CONFIG_FILE = "cfg_global_master.json"
+#CONFIG_FILE = "cfg_global_slave.json"
 
 global led_offset
 led_offset = 0
@@ -23,7 +26,7 @@ led_offset = 0
 # Globales Dictionary für die Konfigurationswerte
 CONFIG = {}
 
-def load_global_config(filepath="config.json"):
+def load_global_config(filepath=CONFIG_FILE):
 
     global CONFIG
     
@@ -35,6 +38,7 @@ def load_global_config(filepath="config.json"):
         "blink_time": 500,
         "debug_time": 1000,
         "board_modus": "Master",
+        "stripe_list": [0, 1, 2, 3, 4, 5, 6, 7],
         "load_modul_hwdebug": True,
         "load_modul_anim_obj": True,
         "load_modul_fcode": True,
@@ -55,7 +59,7 @@ def load_global_config(filepath="config.json"):
 #==============================================================================
 
 # --- 1. KONFIGURATION BEIM START LADEN ---
-load_global_config("cfg_global.json")
+load_global_config(CONFIG_FILE)
 
 # --- 2. OPTIONALE MODUL-STEUERUNG ---
 if CONFIG["load_modul_hwdebug"]:
@@ -91,8 +95,10 @@ else:
     print("[INIT] ## Modul F-Code wird nicht geladen ##")
 
 print("[Board-Modus]:", CONFIG["board_modus"])
+print("[Stripe-Liste]:", CONFIG["stripe_list"])
 print("[LEDs per Stripe]:", CONFIG["leds_per_stripe"])
 print("[LEDs Helligkeit]:", CONFIG["leds_brightness"])
+print("[Anzahl der Objekte]:", len(CONFIG["stripe_list"]))
 print("[INIT] -> Alle Module geladen. Starte Hauptprogramm...")
 
 
@@ -197,7 +203,7 @@ def new_input_action(action_input):
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
             if z in treffer_werte:
-                #print(f"Treffer: Objekt {z} -> Animation starten")
+                print(f"Treffer: Objekt {z} -> Animation starten")
                 do_start_anim(z)
             else:
                 #print(f"Objekt {z} -> auf Default setzen")
@@ -208,11 +214,16 @@ def new_input_action(action_input):
 def do_start_anim(value):
     global anim_obj
     print(f"[DO] START Animation für Objekt {value}")
-    anim_obj[value - CONFIG["offset_obj"]].modified = True
+    anim_obj[value - CONFIG["offset_obj"]].set_anim_state(True)
 
 def do_stop_anim(value):
     print(f"[DO] STOP  Animation für Objekt {value}")
-    anim_obj[value - CONFIG["offset_obj"]].modified = False
+    anim_obj[value - CONFIG["offset_obj"]].set_default_state(False)
+    anim_obj[value - CONFIG["offset_obj"]].set_anim_state(False)
+
+def do_default_anim(value):
+    print(f"[DO] DEFAULT Animation für Objekt {value}")
+    anim_obj[value - CONFIG["offset_obj"]].set_default_state(True)
 
 def func_all_def():
     print("[DO] Alle Animationen auf Default setzen.")
@@ -220,13 +231,14 @@ def func_all_def():
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
             #print(f"Objekt {z} -> auf Default setzen")
-            do_stop_anim(z)
+            do_default_anim(z)
+
 #-----------------------------------------------------------------------------
 #--- Async Funktion zum Senden einer Testnachricht über den Bus ---
 #-----------------------------------------------------------------------------
 async def do_send_msg_bus(msg=None):
     if msg is None:
-        msg = "00"
+        msg = "0"
     print(f"[TX] Sende Nachricht: '{msg}'")
     await bus.send_text(msg)
 
@@ -237,7 +249,7 @@ async def background_heartbeat():
     print("Starte Background Task...")
     # UART-Empfangstask im Hintergrund starten
     uart_dev.start()
-    blink_time = 600        # Blinkzeit in Millisekunden
+    blink_time = 300        # Blinkzeit in Millisekunden
     blink_state = False
     while True:
         #print("Hintergrund-Task: Status-LED blinken")
@@ -255,23 +267,17 @@ async def background_heartbeat():
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
+    frame_time = CONFIG["frame_time"]
     offset = 0
     print("Starte WS2812-Berechnung...")
     while True:
         leds.clear()
         for s in range(8):
-            if anim_obj[s].modified:
-                for i in range(2):
-                    leds.pixel(s, i + offset, (0, 150, 150))
-            else:
-                for i in range(2):
-                    leds.pixel(s, i + offset, (0, 0, 10))
+            anim_obj[s].do_anim_update()
+            led_array = anim_obj[s].do_anim_update()
+            for led_index, led_color in enumerate(led_array):
+                leds.pixel_hex(s, led_index, led_color)
         await leds.show(copy=False)
-        if offset < 150:
-            offset += 1
-        else:
-            offset = 0
         await asyncio.sleep_ms(frame_time)
 
 #------------------------------------------------------------------------------

@@ -232,6 +232,7 @@ def func_all_def():
             z = i + CONFIG["offset_obj"]
             #print(f"Objekt {z} -> auf Default setzen")
             do_default_anim(z)
+
 #-----------------------------------------------------------------------------
 #--- Async Funktion zum Senden einer Testnachricht über den Bus ---
 #-----------------------------------------------------------------------------

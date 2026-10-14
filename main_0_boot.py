@@ -15,8 +15,9 @@ import json
 #------------------------------------------------------------------------------
 machine.freq(250_000_000)       # type: ignore      # Anpassung CPU Clock
 #------------------------------------------------------------------------------
-
+# Master/Slave-Konfiguration setzen
 CONFIG_FILE = "cfg_global_master.json"
+#CONFIG_FILE = "cfg_global_slave.json"
 
 global led_offset
 led_offset = 0
@@ -97,7 +98,7 @@ print("[Board-Modus]:", CONFIG["board_modus"])
 print("[Stripe-Liste]:", CONFIG["stripe_list"])
 print("[LEDs per Stripe]:", CONFIG["leds_per_stripe"])
 print("[LEDs Helligkeit]:", CONFIG["leds_brightness"])
-print("[Anzahl der Objekte]:", len(anim_obj))
+print("[Anzahl der Objekte]:", len(CONFIG["stripe_list"]))
 print("[INIT] -> Alle Module geladen. Starte Hauptprogramm...")
 
 

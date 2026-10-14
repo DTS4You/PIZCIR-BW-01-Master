@@ -40,7 +40,7 @@ class ParallelBus:
             val |= self.pins_data[i].value() << i
         return val
 
-    async def _wait_strobe(self, pin, timeout_ms=100):
+    async def _wait_strobe(self, pin, timeout_ms=200):
         """Wartet auf einen LOW-Puls (0) mit Timeout."""
         start = time.ticks_ms()
         while pin.value() == 1:
@@ -52,14 +52,14 @@ class ParallelBus:
     async def read_byte_non_blocking(self):
         """Liest ein Byte über LOW-Strobe-Pulse ein. Gibt None bei Timeout zurück."""
         # 1. High-Nibble (Warten auf LOW an GP14)
-        if not await self._wait_strobe(self.strobe_high, timeout_ms=100):
+        if not await self._wait_strobe(self.strobe_high, timeout_ms=200):
             return None
         high = self._read_nibble()
         while self.strobe_high.value() == 0:
             await asyncio.sleep_ms(1)
 
         # 2. Low-Nibble (Warten auf LOW an GP15)
-        if not await self._wait_strobe(self.strobe_low, timeout_ms=100):
+        if not await self._wait_strobe(self.strobe_low, timeout_ms=200):
             return None
         low = self._read_nibble()
         while self.strobe_low.value() == 0:
@@ -92,9 +92,9 @@ class ParallelBus:
             self.pins_data[i].value((nibble >> i) & 1)
 
         strobe_pin.value(0)
-        await asyncio.sleep_ms(16)  # Impulsdauer
+        await asyncio.sleep_ms(40)  # Impulsdauer
         strobe_pin.value(1)
-        await asyncio.sleep_ms(32)  # Pause vor nächstem Nibble
+        await asyncio.sleep_ms(80)  # Pause vor nächstem Nibble
 
     async def send_text(self, text):
         """Sendet einen String inkl. '\\r' am Ende."""

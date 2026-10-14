@@ -237,7 +237,7 @@ def func_all_def():
 #-----------------------------------------------------------------------------
 async def do_send_msg_bus(msg=None):
     if msg is None:
-        msg = "00"
+        msg = "0"
     print(f"[TX] Sende Nachricht: '{msg}'")
     await bus.send_text(msg)
 
@@ -248,7 +248,7 @@ async def background_heartbeat():
     print("Starte Background Task...")
     # UART-Empfangstask im Hintergrund starten
     uart_dev.start()
-    blink_time = 600        # Blinkzeit in Millisekunden
+    blink_time = 300        # Blinkzeit in Millisekunden
     blink_state = False
     while True:
         #print("Hintergrund-Task: Status-LED blinken")

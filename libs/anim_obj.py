@@ -32,6 +32,7 @@ class ANIM_OBJ:
         self.direction      = direction                     # True = rechts -> links / False = links -> rechts
         self.toggle_en      = toggle_en                     # Toggle der Richtung nach jedem Durchlauf
         self.run_state      = False                         # True = Animation läuft / False = Animation gestoppt
+        self.default_state  = False                         # True = Animation läuft / False = Animation gestoppt
         self.modulo         = 0
         self.modified       = False
         self.arr_length     = self.length + self.pattern.length
@@ -57,12 +58,22 @@ class ANIM_OBJ:
 
     def set_anim_state(self, state=False):
         if state:
-            self.run_state = True
+            self.run_state      = True
+            self.default_state  = False
         else:
             self.run_state = False
             self.position  = 0
 
+    def set_default_state(self, state=False):
+        if state:
+            self.default_state = True
+            self.run_state     = False
+            self.position      = 0
+        else:
+            self.default_state = False
+
     def do_anim_update(self):
+
         if self.run_state:
             arr_len = len(self.led_array)
             n = self.position % arr_len
@@ -92,8 +103,12 @@ class ANIM_OBJ:
             self.led_output = self.act_array[self.pattern.length :]
             return self.led_output
         else:
-            self.led_output = [self.color_index[self.color_off].rgb32] * self.length           # Array mit RGB32 Wert aus Color-Index[Off] zurückgeben
-            return self.led_output
+            if self.default_state:
+                self.led_output = [self.color_index[self.color_def].rgb32] * self.length       # Array mit RGB32 Wert aus Color-Index[Default] zurückgeben
+                return self.led_output
+            else:
+                self.led_output = [self.color_index[self.color_off].rgb32] * self.length           # Array mit RGB32 Wert aus Color-Index[Off] zurückgeben
+                return self.led_output
 #------------------------------------------------------------------------------
 # Klasse für Farbobjekte
 #------------------------------------------------------------------------------

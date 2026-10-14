@@ -1,5 +1,5 @@
 [
-    { "id":  0,"stripe":  0, "start":  1, "length": 172, "pregap":  -15, "pattern": 1, "color_def": 1, "color_off": 0, "direction": true, "toggle_en": false },
+    { "id":  0,"stripe":  0, "start":  1, "length": 172, "pregap":    0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": true, "toggle_en": false },
     { "id":  1,"stripe":  1, "start":  1, "length": 172, "pregap":    0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": true, "toggle_en": false },
     { "id":  2,"stripe":  2, "start":  1, "length": 172, "pregap":    0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": true, "toggle_en": false },
     { "id":  3,"stripe":  3, "start":  1, "length": 172, "pregap":    0, "pattern": 0, "color_def": 1, "color_off": 0, "direction": true, "toggle_en": false },

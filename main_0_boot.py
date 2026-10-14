@@ -203,7 +203,7 @@ def new_input_action(action_input):
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
             if z in treffer_werte:
-                #print(f"Treffer: Objekt {z} -> Animation starten")
+                print(f"Treffer: Objekt {z} -> Animation starten")
                 do_start_anim(z)
             else:
                 #print(f"Objekt {z} -> auf Default setzen")
@@ -218,7 +218,12 @@ def do_start_anim(value):
 
 def do_stop_anim(value):
     print(f"[DO] STOP  Animation für Objekt {value}")
+    anim_obj[value - CONFIG["offset_obj"]].set_default_state(False)
     anim_obj[value - CONFIG["offset_obj"]].set_anim_state(False)
+
+def do_default_anim(value):
+    print(f"[DO] DEFAULT Animation für Objekt {value}")
+    anim_obj[value - CONFIG["offset_obj"]].set_default_state(True)
 
 def func_all_def():
     print("[DO] Alle Animationen auf Default setzen.")
@@ -226,7 +231,7 @@ def func_all_def():
         for i in range(len(anim_obj)):
             z = i + CONFIG["offset_obj"]
             #print(f"Objekt {z} -> auf Default setzen")
-            do_stop_anim(z)
+            do_default_anim(z)
 #-----------------------------------------------------------------------------
 #--- Async Funktion zum Senden einer Testnachricht über den Bus ---
 #-----------------------------------------------------------------------------
@@ -261,21 +266,17 @@ async def background_heartbeat():
 #------------------------------------------------------------------------------
 async def main_loop():
 
-    frame_time = 20  # Standardwert, kann später aus CONFIG geladen werden
+    frame_time = CONFIG["frame_time"]
     offset = 0
     print("Starte WS2812-Berechnung...")
-    print("Array:", anim_obj[0].do_anim_update())
     while True:
         leds.clear()
         for s in range(8):
+            anim_obj[s].do_anim_update()
             led_array = anim_obj[s].do_anim_update()
             for led_index, led_color in enumerate(led_array):
                 leds.pixel_hex(s, led_index, led_color)
         await leds.show(copy=False)
-        if offset < 150:
-            offset += 1
-        else:
-            offset = 0
         await asyncio.sleep_ms(frame_time)
 
 #------------------------------------------------------------------------------

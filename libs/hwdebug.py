@@ -38,7 +38,7 @@ def main():
         
         hwdebug.write_output(0)
         print("Programm wurde durch Benutzer abgebrochen...")
-        machine.reset()
+        machine.reset()                         # type: ignore
     
     print("### ENDE ###")
 #------------------------------------------------------------------------------

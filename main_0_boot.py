@@ -12,8 +12,8 @@ import uctypes                  # type: ignore
 import uasyncio as asyncio      # type: ignore
 import json
 
-#---- Verdoppelt die Rechenleistung der CPU
-machine.freq(250_000_000)       # type: ignore
+#------------------------------------------------------------------------------
+machine.freq(250_000_000)       # type: ignore      # Anpassung CPU Clock
 #------------------------------------------------------------------------------
 
 global led_offset

@@ -1,5 +1,7 @@
 ###############################################################################
-### XIO-Bus (Parallelbus) für Raspberry Pi Pico
+### Modul   : XIO-Bus (Parallelbus) für Raspberry Pi Pico
+### Version : 1.00
+### Datum   : 2026-10-14
 ###############################################################################
 import uasyncio as asyncio      # type: ignore
 import time

@@ -20,25 +20,25 @@ CHANNELS = 8
     fifo_join=rp2.PIO.JOIN_TX,
 )
 def ws2812_parallel8():
-    wrap_target()
-    out(x, 8)
-    mov(pins, invert(null)) [1]
-    mov(pins, x) [4]
-    mov(pins, null) [1]
-    wrap()
+    wrap_target()                           # type: ignore
+    out(x, 8)                               # type: ignore
+    mov(pins, invert(null)) [1]             # type: ignore
+    mov(pins, x) [4]                        # type: ignore
+    mov(pins, null) [1]                     # type: ignore
+    wrap()                                  # type: ignore
 
 
-@micropython.viper
+@micropython.viper                          # type: ignore
 def _encode_chunk_viper(
-    ch0: ptr32,
-    ch1: ptr32,
-    ch2: ptr32,
-    ch3: ptr32,
-    ch4: ptr32,
-    ch5: ptr32,
-    ch6: ptr32,
-    ch7: ptr32,
-    tx_ptr: ptr32,
+    ch0: ptr32,                             # type: ignore
+    ch1: ptr32,                             # type: ignore
+    ch2: ptr32,                             # type: ignore
+    ch3: ptr32,                             # type: ignore
+    ch4: ptr32,                             # type: ignore
+    ch5: ptr32,                             # type: ignore
+    ch6: ptr32,                             # type: ignore
+    ch7: ptr32,                             # type: ignore
+    tx_ptr: ptr32,                          # type: ignore
     start_led: int,
     end_led: int,
     out_word_idx: int,

@@ -274,7 +274,7 @@ async def main_loop():
         leds.clear()
         for s in CONFIG["stripe_list"]:
             #anim_obj[s].do_anim_update()
-            #anim_obj[s].do_anim_update()
+            anim_obj[s].do_anim_update()
             led_array = anim_obj[s].do_anim_update()
             for led_index, led_color in enumerate(led_array):
                 pos = anim_obj[s].start + led_index - 1
